@@ -40,7 +40,7 @@ import ij.gui.GenericDialog;
 public class ManageFusionDialogListeners
 {
 	final GenericDialog gd;
-	final TextField downsampleField;
+	final TextField downsampleField, downsampleFieldZ;
 	final Choice boundingBoxChoice, pixelTypeChoice, cachingChoice, nonRigidChoice, splitChoice;
 	final Checkbox contentbasedCheckbox, anisoCheckbox;
 	final Label label1;
@@ -49,10 +49,11 @@ public class ManageFusionDialogListeners
 
 	double anisoF;
 
-	public ManageFusionDialogListeners(
+		public ManageFusionDialogListeners(
 			final GenericDialog gd,
 			final Choice boundingBoxChoice,
 			final TextField downsampleField,
+			final TextField downsampleFieldZ,
 			final Choice pixelTypeChoice,
 			final Choice cachingChoice,
 			final Choice nonRigidChoice,
@@ -66,6 +67,7 @@ public class ManageFusionDialogListeners
 		this.gd = gd;
 		this.boundingBoxChoice = boundingBoxChoice;
 		this.downsampleField = downsampleField;
+		this.downsampleFieldZ = downsampleField;
 		this.pixelTypeChoice = pixelTypeChoice;
 		this.cachingChoice = cachingChoice;
 		this.nonRigidChoice = nonRigidChoice;
@@ -118,15 +120,18 @@ public class ManageFusionDialogListeners
 		{
 			fusion.preserveAnisotropy = anisoCheckbox.getState();
 			
-			if ( fusion.preserveAnisotropy )
+			if ( fusion.preserveAnisotropy ){
 				this.anisoF = fusion.getAnisotropyFactor();
+				fusion.downsamplingZ = Integer.parseInt(downsampleFieldZ.getText());}
 			else
 				this.anisoF = 1.0;
+				fusion.downsamplingZ = fusion.downsampling;
 		}
 		else
 		{
 			this.anisoF = 1.0;
 			fusion.preserveAnisotropy = false;
+			fusion.downsamplingZ = fusion.downsampling;
 		}
 
 		final BoundingBox bb = fusion.allBoxes.get( fusion.boundingBox );
@@ -155,7 +160,7 @@ public class ManageFusionDialogListeners
 		label2.setText( "Dimensions: " + 
 				Math.round( (max[ 0 ] - min[ 0 ] + 1)/fusion.downsampling ) + " x " + 
 				Math.round( (max[ 1 ] - min[ 1 ] + 1)/fusion.downsampling ) + " x " + 
-				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsampling ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
+				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsamplingZ ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
 	}
 
 	public long totalRAM( long fusedSizeMB, final int bytePerPixel )

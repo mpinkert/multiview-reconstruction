@@ -126,6 +126,7 @@ public class FusionTools
 
 	public static long numPixels( final long[] dim, final double downsampling )
 	{
+		// todo: Modify for Z downsampling
 		final long[] min = new long[ dim.length ];
 		final long[] max = new long[ dim.length ];
 
