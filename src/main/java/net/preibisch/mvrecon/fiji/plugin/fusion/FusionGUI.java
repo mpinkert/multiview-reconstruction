@@ -266,7 +266,7 @@ public class FusionGUI implements FusionExportInterface
 					"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );
 
 			gd.addSlider( "Downsampling in Z", 1.0, 16.0, defaultDownsampling );
-			downsampleFieldZ = (TextField)gd.getNumericFields().lastElement();
+			downsampleFieldZ = lastTextField(gd);
 		}
 		else
 		{
