@@ -9,12 +9,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -78,7 +78,7 @@ public class QualityGUI implements FusionExportInterface
 	protected int splittingType = defaultSplittingType;
 	protected double downsampling = defaultDownsampling;
 	protected boolean preserveAnisotropy = defaultPreserveAnisotropy;
-	protected double avgAnisoF;
+	protected double[] avgAnisoF;
 	protected boolean useRelativeFRC = defaultUseRelativeFRC;
 	protected boolean useSmoothLocalFRC = defaultSmoothLocalFRC;
 	protected int fftSize = defaultFFTSize;
@@ -147,7 +147,7 @@ public class QualityGUI implements FusionExportInterface
 	public double getDownsampling(){ return downsampling; }
 
 	@Override
-	public double getAnisotropyFactor() { return avgAnisoF; }
+	public double[] getAnisotropyFactor() { return avgAnisoF; }
 
 	public boolean getUseRelativeFRC() { return useRelativeFRC; }
 	public boolean getUseSmoothLocalFRC() { return useSmoothLocalFRC; }
@@ -183,12 +183,14 @@ public class QualityGUI implements FusionExportInterface
 
 		gd.addMessage( "" );
 
-		if ( avgAnisoF > 1.01 ) // for numerical instabilities (computed upon instantiation)
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 ) // for numerical instabilities (computed upon instantiation)
 		{
-			gd.addCheckbox( "Preserve_original data anisotropy (shrink image " + TransformationTools.f.format( avgAnisoF ) + " times in z) ", defaultPreserveAnisotropy );
+			gd.addCheckbox( "Preserve_original data anisotropy (shrink image "
+					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in y and "
+					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in z) ", defaultPreserveAnisotropy );
 			gd.addMessage(
-					"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
-					"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );
+				"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
+						"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );
 		}
 
 		gd.addMessage( "" );
@@ -215,12 +217,12 @@ public class QualityGUI implements FusionExportInterface
 					gd,
 					(Choice)gd.getChoices().get( 0 ),
 					(TextField)gd.getNumericFields().get( 0 ),
-					avgAnisoF > 1.01 ? (Checkbox)gd.getCheckboxes().lastElement() : null,
+					avgAnisoF[1] > 1.01 ? (Checkbox)gd.getCheckboxes().lastElement() : null,
 					(Choice)gd.getChoices().get( 1 ),
 					label1,
 					label2,
 					this );
-	
+
 			m.update();
 		}
 
@@ -249,13 +251,14 @@ public class QualityGUI implements FusionExportInterface
 		if ( downsampling == 1.0 )
 			downsampling = Double.NaN;
 
-		if ( avgAnisoF > 1.01 )
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 )
 			preserveAnisotropy = defaultPreserveAnisotropy = gd.getNextBoolean();
 		else
 			preserveAnisotropy = defaultPreserveAnisotropy = false;
 
-		if ( !preserveAnisotropy )
-			avgAnisoF = Double.NaN;
+		if ( !preserveAnisotropy ){
+			avgAnisoF[0] = Double.NaN;
+			avgAnisoF[1] = Double.NaN;}
 
 		useRelativeFRC = defaultUseRelativeFRC = gd.getNextBoolean();
 		useSmoothLocalFRC =defaultSmoothLocalFRC = gd.getNextBoolean();

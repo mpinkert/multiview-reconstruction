@@ -286,7 +286,8 @@ public class Image_Deconvolution implements PlugIn
 	{
 		final String title = Image_Fusion.getTitle( fusion.getSplittingType(), group );
 
-		return exporter.exportImage( output, fusion.getBoundingBox(), fusion.getDownsampling(), Double.NaN, title, group );
+		double[] anisoF = {Double.NaN, Double.NaN};
+		return exporter.exportImage( output, fusion.getBoundingBox(), fusion.getDownsampling(), anisoF, title, group );
 	}
 
 	public static void main( String[] args )

@@ -9,12 +9,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -102,12 +102,11 @@ public class FusionGUI implements FusionExportInterface
 	protected int cacheType = defaultCache;
 	protected int splittingType = defaultSplittingType;
 	protected double downsampling = defaultDownsampling;
-	protected double downsamplingZ = defaultDownsampling;
 	protected boolean useBlending = defaultUseBlending;
 	protected boolean useContentBased = defaultUseContentBased;
 	protected boolean adjustIntensities = defaultAdjustIntensities;
 	protected boolean preserveAnisotropy = defaultPreserveAnisotropy;
-	protected double avgAnisoF;
+	protected double[] avgAnisoF;
 	protected int imgExport = defaultImgExportAlgorithm;
 
 	protected NonRigidParametersGUI nrgui;
@@ -161,13 +160,8 @@ public class FusionGUI implements FusionExportInterface
 	@Override
 	public Interval getDownsampledBoundingBox()
 	{
-		// todo: make this n dimensional?
-		double[] downsampleFactors = {1.0/downsampling, 1.0/downsampling, 1.0/downsamplingZ};
 		if ( !Double.isNaN( downsampling ) )
-			if (this.preserveAnisotropy)
-				return TransformVirtual.scaleBoundingBox(getBoundingBox(), downsampleFactors);
-			else
-				return TransformVirtual.scaleBoundingBox( getBoundingBox(), 1.0 / downsampling );
+			return TransformVirtual.scaleBoundingBox( getBoundingBox(), 1.0 / downsampling );
 		else
 			return getBoundingBox();
 	}
@@ -183,8 +177,6 @@ public class FusionGUI implements FusionExportInterface
 	@Override
 	public double getDownsampling(){ return downsampling; }
 
-	public double getDownsamplingZ(){ return downsamplingZ; }
-
 	public boolean useBlending() { return useBlending; }
 
 	public boolean useContentBased() { return useContentBased; }
@@ -192,7 +184,7 @@ public class FusionGUI implements FusionExportInterface
 	public boolean adjustIntensities() { return adjustIntensities; }
 
 	@Override
-	public double getAnisotropyFactor() { return avgAnisoF; }
+	public double[] getAnisotropyFactor() { return avgAnisoF; }
 
 	@Override
 	public int getSplittingType() { return splittingType; }
@@ -205,7 +197,6 @@ public class FusionGUI implements FusionExportInterface
 		final boolean enableNonRigid = NonRigidParametersGUI.enableNonRigid;
 		final Choice boundingBoxChoice, pixelTypeChoice, cachingChoice, nonrigidChoice, splitChoice;
 		final TextField downsampleField;
-		final TextField downsampleFieldZ;
 		final Checkbox contentbasedCheckbox, anisoCheckbox;
 
 		final String[] choices = FusionGUI.getBoundingBoxChoices( allBoxes );
@@ -257,21 +248,19 @@ public class FusionGUI implements FusionExportInterface
 		if ( hasIntensityAdjustments )
 			gd.addCheckbox( "Adjust_image_intensities (only use with 32-bit output)", defaultAdjustIntensities );
 
-		if ( avgAnisoF > 1.01 ) // for numerical instabilities (computed upon instantiation)
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 ) // for numerical instabilities (computed upon instantiation)
 		{
-			gd.addCheckbox( "Preserve_original data anisotropy (shrink image " + TransformationTools.f.format( avgAnisoF ) + " times in z) ", defaultPreserveAnisotropy );
+			gd.addCheckbox( "Preserve_original data anisotropy (shrink image "
+					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in y and "
+					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in z) ", defaultPreserveAnisotropy );
 			anisoCheckbox = lastCheckbox(gd);
 			gd.addMessage(
 					"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
 					"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );
-
-			gd.addSlider( "Downsampling in Z", 1.0, 16.0, defaultDownsampling );
-			downsampleFieldZ = lastTextField(gd);
 		}
 		else
 		{
 			anisoCheckbox = null;
-			downsampleFieldZ = null;
 		}
 
 		gd.addChoice( "Produce one fused image for", splittingTypes, splittingTypes[ defaultSplittingType ] );
@@ -286,22 +275,21 @@ public class FusionGUI implements FusionExportInterface
 
 		if ( !PluginHelper.isHeadless() )
 		{
-            final ManageFusionDialogListeners m = new ManageFusionDialogListeners(
-                    gd,
-                    boundingBoxChoice,
-                    downsampleField,
-                    downsampleFieldZ,
-                    pixelTypeChoice,
-                    cachingChoice,
-                    nonrigidChoice,
-                    contentbasedCheckbox,
-                    anisoCheckbox,
-                    splitChoice,
-                    label1,
-                    label2,
-                    this);
-
-            m.update();
+			final ManageFusionDialogListeners m = new ManageFusionDialogListeners(
+					gd,
+					boundingBoxChoice,
+					downsampleField,
+					pixelTypeChoice,
+					cachingChoice,
+					nonrigidChoice,
+					contentbasedCheckbox,
+					anisoCheckbox,
+					splitChoice,
+					label1,
+					label2,
+					this );
+	
+			m.update();
 		}
 
 		gd.showDialog();
@@ -345,13 +333,14 @@ public class FusionGUI implements FusionExportInterface
 			adjustIntensities = defaultAdjustIntensities = gd.getNextBoolean();
 		else
 			adjustIntensities = false;
-		if ( avgAnisoF > 1.01 )
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 )
 			preserveAnisotropy = defaultPreserveAnisotropy = gd.getNextBoolean();
 		else
 			preserveAnisotropy = defaultPreserveAnisotropy = false;
 
-		if ( !preserveAnisotropy )
-			avgAnisoF = Double.NaN;
+		if ( !preserveAnisotropy ){
+			avgAnisoF[0] = Double.NaN;
+			avgAnisoF[1] = Double.NaN;}
 
 		splittingType = defaultSplittingType = gd.getNextChoiceIndex();
 		imgExport = defaultImgExportAlgorithm = gd.getNextChoiceIndex();
@@ -422,7 +411,7 @@ public class FusionGUI implements FusionExportInterface
 
 		int i = 0;
 		for ( final BoundingBox b : allBoxes )
-			choices[ i++ ] = showDimensions
+			choices[ i++ ] = showDimensions 
 								? b.getTitle() + " (" + b.dimension( 0 ) + "x" + b.dimension( 1 ) + "x" + b.dimension( 2 ) + "px)"
 								: b.getTitle();
 

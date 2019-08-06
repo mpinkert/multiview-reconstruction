@@ -89,7 +89,7 @@ public class ExportSpimData2TIFF implements ImgExport
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
 			final double downsampling,
-			final double anisoF,
+			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
 	{
@@ -101,7 +101,7 @@ public class ExportSpimData2TIFF implements ImgExport
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
 			final double downsampling,
-			final double anisoF,
+			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
 			final double min,
@@ -121,12 +121,14 @@ public class ExportSpimData2TIFF implements ImgExport
 		final ViewRegistration vr = newSpimData.getViewRegistrations().getViewRegistration( newViewId );
 
 		final double scale = Double.isNaN( downsampling ) ? 1.0 : downsampling;
-		final double ai = Double.isNaN( anisoF ) ? 1.0 : anisoF;
+
+		final double aiy = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
+		final double aiz = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 
 		final AffineTransform3D m = new AffineTransform3D();
 		m.set( scale, 0.0f, 0.0f, bb.min( 0 ), 
-			   0.0f, scale, 0.0f, bb.min( 1 ),
-			   0.0f, 0.0f, scale * ai, bb.min( 2 ) * ai ); // TODO: bb * ai is right?
+			   0.0f, scale * aiy, 0.0f, bb.min( 1 ) * aiy,
+			   0.0f, 0.0f, scale * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
 		final ViewTransform vt = new ViewTransformAffine( "fusion bounding box", m );
 
 		vr.getTransformList().clear();
@@ -244,7 +246,7 @@ public class ExportSpimData2TIFF implements ImgExport
 		}
 	}
 
-	public static Pair< List< TimePoint >, List< ViewSetup > > defineNewViewSetups( final FusionExportInterface fusion, double downsampling, double anisoF )
+	public static Pair< List< TimePoint >, List< ViewSetup > > defineNewViewSetups( final FusionExportInterface fusion, double downsampling, double[] anisoF )
 	{
 		final List< ViewSetup > newViewSetups = new ArrayList<>();
 		final List< TimePoint > newTimepoints;
@@ -252,7 +254,8 @@ public class ExportSpimData2TIFF implements ImgExport
 		int newViewSetupId = 0;
 
 		downsampling = Double.isNaN( downsampling ) ? 1.0 : downsampling;
-		anisoF = Double.isNaN( anisoF ) ? 1.0 : anisoF;
+		anisoF[0] = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
+		anisoF[1] = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 
 		if ( fusion.getSplittingType() < 2 ) // "Each timepoint & channel" or "Each timepoint, channel & illumination"
 		{
@@ -268,7 +271,7 @@ public class ExportSpimData2TIFF implements ImgExport
 							newViewSetupId++,
 							c.getName(),
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling, downsampling * anisoF } ),
+							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
 							new Tile( 0 ),
 							c,
 							new Angle( 0 ),
@@ -285,7 +288,7 @@ public class ExportSpimData2TIFF implements ImgExport
 									newViewSetupId++,
 									channels.get( c ).getName() + "_" + illums.get( i ).getName(),
 									fusion.getDownsampledBoundingBox(),
-									new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling, downsampling * anisoF } ),
+									new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
 									new Tile( 0 ),
 									channels.get( c ),
 									new Angle( 0 ),
@@ -302,7 +305,7 @@ public class ExportSpimData2TIFF implements ImgExport
 							0,
 							"Fused",
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling, downsampling * anisoF } ),
+							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
 							new Tile( 0 ),
 							new Channel( 0 ),
 							new Angle( 0 ),
@@ -321,7 +324,7 @@ public class ExportSpimData2TIFF implements ImgExport
 								vs.getId(),
 								vs.getName(),
 								fusion.getDownsampledBoundingBox(),
-								new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling, downsampling * anisoF } ),
+								new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
 								vs.getTile(),
 								vs.getChannel(),
 								vs.getAngle(),

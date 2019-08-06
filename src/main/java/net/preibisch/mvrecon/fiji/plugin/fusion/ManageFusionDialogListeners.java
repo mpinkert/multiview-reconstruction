@@ -40,20 +40,19 @@ import ij.gui.GenericDialog;
 public class ManageFusionDialogListeners
 {
 	final GenericDialog gd;
-	final TextField downsampleField, downsampleFieldZ;
+	final TextField downsampleField;
 	final Choice boundingBoxChoice, pixelTypeChoice, cachingChoice, nonRigidChoice, splitChoice;
 	final Checkbox contentbasedCheckbox, anisoCheckbox;
 	final Label label1;
 	final Label label2;
 	final FusionGUI fusion;
 
-	double anisoF;
+	double[] anisoF;
 
-		public ManageFusionDialogListeners(
+	public ManageFusionDialogListeners(
 			final GenericDialog gd,
 			final Choice boundingBoxChoice,
 			final TextField downsampleField,
-			final TextField downsampleFieldZ,
 			final Choice pixelTypeChoice,
 			final Choice cachingChoice,
 			final Choice nonRigidChoice,
@@ -67,7 +66,6 @@ public class ManageFusionDialogListeners
 		this.gd = gd;
 		this.boundingBoxChoice = boundingBoxChoice;
 		this.downsampleField = downsampleField;
-		this.downsampleFieldZ = downsampleField;
 		this.pixelTypeChoice = pixelTypeChoice;
 		this.cachingChoice = cachingChoice;
 		this.nonRigidChoice = nonRigidChoice;
@@ -120,22 +118,21 @@ public class ManageFusionDialogListeners
 		{
 			fusion.preserveAnisotropy = anisoCheckbox.getState();
 			
-			if ( fusion.preserveAnisotropy ){
+			if ( fusion.preserveAnisotropy )
 				this.anisoF = fusion.getAnisotropyFactor();
-				fusion.downsamplingZ = Integer.parseInt(downsampleFieldZ.getText());}
 			else
-				this.anisoF = 1.0;
-				fusion.downsamplingZ = fusion.downsampling;
+				this.anisoF[0] = 1.0;
+				this.anisoF[1] = 1.0;
 		}
 		else
 		{
-			this.anisoF = 1.0;
+			this.anisoF[0] = 1.0;
+			this.anisoF[1] = 1.0;
 			fusion.preserveAnisotropy = false;
-			fusion.downsamplingZ = fusion.downsampling;
 		}
 
 		final BoundingBox bb = fusion.allBoxes.get( fusion.boundingBox );
-		final long numPixels = Math.round( FusionTools.numPixels( bb, fusion.downsampling ) / anisoF );
+		final long numPixels = Math.round( FusionTools.numPixels( bb, fusion.downsampling ) / anisoF[1] );
 
 		final int bytePerPixel;
 		if ( fusion.pixelType == 1 )
@@ -153,14 +150,16 @@ public class ManageFusionDialogListeners
 
 		if ( fusion.preserveAnisotropy )
 		{
-			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF ) );
-			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
 		}
 
 		label2.setText( "Dimensions: " + 
 				Math.round( (max[ 0 ] - min[ 0 ] + 1)/fusion.downsampling ) + " x " + 
 				Math.round( (max[ 1 ] - min[ 1 ] + 1)/fusion.downsampling ) + " x " + 
-				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsamplingZ ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
+				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsampling ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
 	}
 
 	public long totalRAM( long fusedSizeMB, final int bytePerPixel )

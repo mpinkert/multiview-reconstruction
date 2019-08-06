@@ -91,9 +91,13 @@ public class Image_Quality implements PlugIn
 		final List< Group< ViewDescription > > groups = quality.getFusionGroups();
 		int i = 0;
 
-		if ( !Double.isNaN( quality.getAnisotropyFactor() ) ) // flatten the fused image
+			final double[] anisoF = quality.getAnisotropyFactor();
+
+
+		boolean preserveAniso = !Double.isNaN( anisoF[0] ) && !Double.isNaN(anisoF[1]);
+
+		if ( preserveAniso ) // flatten the fused image
 		{
-			final double anisoF = quality.getAnisotropyFactor();
 
 			Interval bb = quality.getBoundingBox();
 			final long[] min = new long[ 3 ];
@@ -102,8 +106,10 @@ public class Image_Quality implements PlugIn
 			bb.min( min );
 			bb.max( max );
 
-			min[ 2 ] = Math.round( Math.floor( min[ 2 ] / anisoF ) );
-			max[ 2 ] = Math.round( Math.ceil( max[ 2 ] / anisoF ) );
+			min[ 1 ] = Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
+			max[ 1 ] = Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
+			min[ 2 ] = Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
+			max[ 2 ] = Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
 
 			final Interval boundingBox = new FinalInterval( min, max );
 
@@ -144,7 +150,7 @@ public class Image_Quality implements PlugIn
 				final ViewRegistration vr = registrations.getViewRegistration( viewId );
 				vr.updateModel();
 
-				if ( Double.isNaN( quality.getAnisotropyFactor() ) ) // no flattening of the quality image
+				if ( preserveAniso ) // no flattening of the quality image
 				{
 					transform = vr.getModel();
 				}
@@ -154,8 +160,8 @@ public class Image_Quality implements PlugIn
 					final AffineTransform3D aniso = new AffineTransform3D();
 					aniso.set(
 							1.0, 0.0, 0.0, 0.0,
-							0.0, 1.0, 0.0, 0.0,
-							0.0, 0.0, 1.0/quality.getAnisotropyFactor(), 0.0 );
+							0.0, 1.0/anisoF[0], 0.0, 0.0,
+							0.0, 0.0, 1.0/anisoF[1], 0.0 );
 					transform.preConcatenate( aniso );
 				}
 

@@ -801,11 +801,11 @@ public class TransformationTools
 		}
 	}
 
-	public static double getAverageAnisotropyFactor( final SpimData spimData, final Collection< ? extends ViewId > views )
+	public static double[] getAverageAnisotropyFactor( final SpimData spimData, final Collection< ? extends ViewId > views )
 	{
 		final SequenceDescription seq = spimData.getSequenceDescription();
 
-		double avgFactor = 0;
+		double[] avgFactor = {0, 0};
 		int count = 0;
 
 		for ( final ViewId vd : views )
@@ -820,18 +820,18 @@ public class TransformationTools
 				final double y = vx.dimension( 1 );
 				final double z = vx.dimension( 2 );
 
-				if ( x == y )
-				{
-					avgFactor += z / x;
-					++count;
-				}
+				avgFactor[0] += y/x;
+				avgFactor[1] += z/x;
+				++count;
 			}
 		}
 
-		if ( count > 0 )
-			avgFactor /= (double)count;
-		else
-			avgFactor = 1.0;
+		if ( count > 0 ){
+			avgFactor[0] /= count;
+			avgFactor[1] /= count;}
+		else{
+			avgFactor[0] = 1.0;
+			avgFactor[1] = 1.0;}
 
 		return avgFactor;
 	}

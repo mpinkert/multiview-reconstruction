@@ -101,10 +101,14 @@ public class Image_Fusion implements PlugIn
 		final List< Group< ViewDescription > > groups = fusion.getFusionGroups();
 		int i = 0;
 
-		if ( !Double.isNaN( fusion.getAnisotropyFactor() ) ) // flatten the fused image
-		{
-			final double anisoF = fusion.getAnisotropyFactor();
 
+
+		final double[] anisoF = fusion.getAnisotropyFactor();
+
+		boolean preserveAniso = !Double.isNaN( anisoF[0] ) && !Double.isNaN(anisoF[1]);
+
+		if ( preserveAniso ) // flatten the fused image
+		{
 			Interval bb = fusion.getBoundingBox();
 			final long[] min = new long[ 3 ];
 			final long[] max = new long[ 3 ];
@@ -112,8 +116,10 @@ public class Image_Fusion implements PlugIn
 			bb.min( min );
 			bb.max( max );
 
-			min[ 2 ] = Math.round( Math.floor( min[ 2 ] / anisoF ) );
-			max[ 2 ] = Math.round( Math.ceil( max[ 2 ] / anisoF ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
 
 			final Interval boundingBox = new FinalInterval( min, max );
 
@@ -164,7 +170,7 @@ public class Image_Fusion implements PlugIn
 
 			final RandomAccessibleInterval< FloatType > virtual;
 
-			if ( Double.isNaN( fusion.getAnisotropyFactor() ) ) // no flattening of the fused image
+			if ( preserveAniso ) // no flattening of the fused image
 			{
 				if ( fusion.getNonRigidParameters().isActive() )
 				{
@@ -211,10 +217,12 @@ public class Image_Fusion implements PlugIn
 					vr.updateModel();
 					final AffineTransform3D model = vr.getModel().copy();
 					final AffineTransform3D aniso = new AffineTransform3D();
+
+
 					aniso.set(
 							1.0, 0.0, 0.0, 0.0,
-							0.0, 1.0, 0.0, 0.0,
-							0.0, 0.0, 1.0/fusion.getAnisotropyFactor(), 0.0 );
+							0.0, 1.0/anisoF[1], 0.0, 0.0,
+							0.0, 0.0, 1.0/anisoF[2], 0.0 );
 					model.preConcatenate( aniso );
 					registrations.put( viewId, model );
 				}

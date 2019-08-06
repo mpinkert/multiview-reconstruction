@@ -55,7 +55,7 @@ public interface ImgExport
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
 			final double downsampling,
-			final double anisoF,
+			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup );
 	
@@ -77,7 +77,7 @@ public interface ImgExport
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
 			final double downsampling,
-			final double anisoF,
+			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
 			final double min,

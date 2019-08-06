@@ -47,7 +47,7 @@ public class ManageQualityDialogListeners
 	final Label label2;
 	final QualityGUI quality;
 
-	double anisoF;
+	double[] anisoF;
 
 	public ManageQualityDialogListeners(
 			final GenericDialog gd,
@@ -96,17 +96,20 @@ public class ManageQualityDialogListeners
 			
 			if ( quality.preserveAnisotropy )
 				this.anisoF = quality.getAnisotropyFactor();
-			else
-				this.anisoF = 1.0;
+			else {
+				this.anisoF[0] = 1.0;
+				this.anisoF[1] = 1.0;
+			}
 		}
 		else
 		{
-			this.anisoF = 1.0;
+			this.anisoF[0] = 1.0;
+			this.anisoF[1] = 1.0;
 			quality.preserveAnisotropy = false;
 		}
 
 		final BoundingBox bb = quality.allBoxes.get( quality.boundingBox );
-		final long numPixels = Math.round( FusionTools.numPixels( bb, quality.downsampling ) / anisoF );
+		final long numPixels = Math.round( FusionTools.numPixels( bb, quality.downsampling ) / anisoF[1] );
 
 		final int bytePerPixel = 4;
 		final long megabytes = (numPixels * bytePerPixel) / (1024*1024);
@@ -119,8 +122,10 @@ public class ManageQualityDialogListeners
 
 		if ( quality.preserveAnisotropy )
 		{
-			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF ) );
-			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
 		}
 
 		label2.setText( "Dimensions: " + 
