@@ -184,7 +184,9 @@ public class FusionGUI implements FusionExportInterface
 	public boolean adjustIntensities() { return adjustIntensities; }
 
 	@Override
-	public double[] getAnisotropyFactor() { return avgAnisoF; }
+	public double[] getAnisotropyFactor() {
+		double[] anisoHere = {avgAnisoF[0], avgAnisoF[1]};
+		return anisoHere; }
 
 	@Override
 	public int getSplittingType() { return splittingType; }

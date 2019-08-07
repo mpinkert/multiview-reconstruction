@@ -118,11 +118,11 @@ public class ManageFusionDialogListeners
 		{
 			fusion.preserveAnisotropy = anisoCheckbox.getState();
 			
-			if ( fusion.preserveAnisotropy )
-				this.anisoF = fusion.getAnisotropyFactor();
-			else
+			if ( fusion.preserveAnisotropy ) {
+				this.anisoF = fusion.getAnisotropyFactor();}
+			else{
 				this.anisoF[0] = 1.0;
-				this.anisoF[1] = 1.0;
+				this.anisoF[1] = 1.0;}
 		}
 		else
 		{

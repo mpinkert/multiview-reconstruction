@@ -221,8 +221,8 @@ public class Image_Fusion implements PlugIn
 
 					aniso.set(
 							1.0, 0.0, 0.0, 0.0,
-							0.0, 1.0/anisoF[1], 0.0, 0.0,
-							0.0, 0.0, 1.0/anisoF[2], 0.0 );
+							0.0, 1.0/anisoF[0], 0.0, 0.0,
+							0.0, 0.0, 1.0/anisoF[1], 0.0 );
 					model.preConcatenate( aniso );
 					registrations.put( viewId, model );
 				}
