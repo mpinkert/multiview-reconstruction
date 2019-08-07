@@ -178,6 +178,8 @@ public class Image_Quality implements PlugIn
 		}
 
 		exporter.finish();
+		
+		taskExecutor.shutdown();
 
 		IOFunctions.println( "(" + new Date(System.currentTimeMillis()) + "): DONE." );
 
