@@ -351,6 +351,13 @@ public class FusionGUI implements FusionExportInterface
 			if ( !this.nrgui.advancedParameters() )
 				return false;
 
+
+		// todo: fix bounding box calculation so image outputs correctly
+		// todo: fix memory estimate
+		// todo: fix pixels estimate
+		// todo: fix isotropic fusion
+
+
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Selected Fusion Parameters: " );
 		IOFunctions.println( "Downsampling: " + DownsampleTools.printDownsampling( getDownsampling() ) );
 		IOFunctions.println( "BoundingBox: " + getBoundingBox() );
