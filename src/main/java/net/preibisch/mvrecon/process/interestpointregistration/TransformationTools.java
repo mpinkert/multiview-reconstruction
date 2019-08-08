@@ -25,6 +25,7 @@ package net.preibisch.mvrecon.process.interestpointregistration;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -805,7 +806,7 @@ public class TransformationTools
 	{
 		final SequenceDescription seq = spimData.getSequenceDescription();
 
-		double[] avgFactor = {0, 0};
+		double[] avgFactor = {0, 0, 0};
 		int count = 0;
 
 		for ( final ViewId vd : views )
@@ -820,18 +821,28 @@ public class TransformationTools
 				final double y = vx.dimension( 1 );
 				final double z = vx.dimension( 2 );
 
-				avgFactor[0] += y/x;
-				avgFactor[1] += z/x;
+				double[] dims = {x, y, z};
+				Arrays.sort(dims);
+
+				// todo: calibrate to lowest dimension and make it 3D
+
+				avgFactor[0] += x/dims[0];
+				avgFactor[1] += y/dims[0];
+				avgFactor[2] += z/dims[0];
 				++count;
 			}
 		}
 
 		if ( count > 0 ){
 			avgFactor[0] /= count;
-			avgFactor[1] /= count;}
+			avgFactor[1] /= count;
+			avgFactor[2] /= count;
+		}
 		else{
 			avgFactor[0] = 1.0;
-			avgFactor[1] = 1.0;}
+			avgFactor[1] = 1.0;
+			avgFactor[2] = 1.0;
+		}
 
 		return avgFactor;
 	}

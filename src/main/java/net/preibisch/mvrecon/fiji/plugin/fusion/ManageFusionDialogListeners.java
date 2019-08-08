@@ -122,12 +122,14 @@ public class ManageFusionDialogListeners
 				this.anisoF = fusion.getAnisotropyFactor();}
 			else{
 				this.anisoF[0] = 1.0;
-				this.anisoF[1] = 1.0;}
+				this.anisoF[1] = 1.0;
+				this.anisoF[2] = 1.0;}
 		}
 		else
 		{
 			this.anisoF[0] = 1.0;
 			this.anisoF[1] = 1.0;
+			this.anisoF[2] = 1.0;
 			fusion.preserveAnisotropy = false;
 		}
 

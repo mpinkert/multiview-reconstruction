@@ -106,15 +106,16 @@ public class DisplayImage implements ImgExport, Calibrateable
 	public static void setCalibration( final ImagePlus imp, final Interval bb, final double downsampling, final double[] anisoF, final double cal, final String unit )
 	{
 		final double ds = Double.isNaN( downsampling ) ? 1.0 : downsampling;
-		final double aiy = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
-		final double aiz = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
+		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
+		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
+		final double aiz = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
 
 		if ( bb != null )
 		{
 			imp.getCalibration().xOrigin = -(bb.min( 0 ) / ds) * cal;
 			imp.getCalibration().yOrigin = -(bb.min( 1 ) / ds) * cal;
 			imp.getCalibration().zOrigin = -(bb.min( 2 ) / ds) * cal;
-			imp.getCalibration().pixelWidth = ds * cal;
+			imp.getCalibration().pixelWidth = ds * cal * aix;
 			imp.getCalibration().pixelHeight = ds * cal * aiy;
 			imp.getCalibration().pixelDepth = ds * cal * aiz;
 		}

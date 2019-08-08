@@ -301,11 +301,14 @@ public class ExportSpimData2HDF5 implements ImgExport
 		final ViewRegistration vr = spimData.getViewRegistrations().getViewRegistration( newViewId );
 
 		final double scale = Double.isNaN( downsampling ) ? 1.0 : downsampling;
-		final double aiy = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
-		final double aiz = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
+
+		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
+		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
+		final double aiz = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
+
 
 		final AffineTransform3D m = new AffineTransform3D();
-		m.set( scale, 0.0f, 0.0f, bb.min( 0 ),
+		m.set( scale * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
 			   0.0f, scale * aiy, 0.0f, bb.min( 1 ) * aiy,
 			   0.0f, 0.0f, scale * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
 		final ViewTransform vt = new ViewTransformAffine( "fusion bounding box", m );

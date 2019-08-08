@@ -280,7 +280,7 @@ public class DeconvolutionGUI implements FusionExportInterface
 
 	@Override
 	public double[] getAnisotropyFactor() {
-		double[] anisoF = {Double.NaN, Double.NaN};
+		double[] anisoF = {Double.NaN, Double.NaN, Double.NaN};
 		return anisoF;}
 
 	public boolean adjustIntensities() { return adjustIntensities; }

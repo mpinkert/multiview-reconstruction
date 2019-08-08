@@ -185,7 +185,7 @@ public class FusionGUI implements FusionExportInterface
 
 	@Override
 	public double[] getAnisotropyFactor() {
-		double[] anisoHere = {avgAnisoF[0], avgAnisoF[1]};
+		double[] anisoHere = {avgAnisoF[0], avgAnisoF[1], avgAnisoF[2]};
 		return anisoHere; }
 
 	@Override
@@ -250,11 +250,12 @@ public class FusionGUI implements FusionExportInterface
 		if ( hasIntensityAdjustments )
 			gd.addCheckbox( "Adjust_image_intensities (only use with 32-bit output)", defaultAdjustIntensities );
 
-		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 ) // for numerical instabilities (computed upon instantiation)
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 || avgAnisoF[2] != 1.0) // for numerical instabilities (computed upon instantiation)
 		{
-			gd.addCheckbox( "Preserve_original data anisotropy (shrink image "
-					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in y and "
-					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in z) ", defaultPreserveAnisotropy );
+			gd.addCheckbox( "Preserve_original data anisotropy (resample image "
+					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in x and "
+					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in y and "
+					+ TransformationTools.f.format( avgAnisoF[2] ) + " times in z) ", defaultPreserveAnisotropy );
 			anisoCheckbox = lastCheckbox(gd);
 			gd.addMessage(
 					"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
@@ -335,14 +336,16 @@ public class FusionGUI implements FusionExportInterface
 			adjustIntensities = defaultAdjustIntensities = gd.getNextBoolean();
 		else
 			adjustIntensities = false;
-		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 )
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 || avgAnisoF[2] != 1.0)
 			preserveAnisotropy = defaultPreserveAnisotropy = gd.getNextBoolean();
 		else
 			preserveAnisotropy = defaultPreserveAnisotropy = false;
 
 		if ( !preserveAnisotropy ){
 			avgAnisoF[0] = Double.NaN;
-			avgAnisoF[1] = Double.NaN;}
+			avgAnisoF[1] = Double.NaN;
+			avgAnisoF[2] = Double.NaN;
+		}
 
 		splittingType = defaultSplittingType = gd.getNextChoiceIndex();
 		imgExport = defaultImgExportAlgorithm = gd.getNextChoiceIndex();

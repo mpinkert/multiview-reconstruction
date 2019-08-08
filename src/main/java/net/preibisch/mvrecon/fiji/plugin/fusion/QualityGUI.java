@@ -183,11 +183,12 @@ public class QualityGUI implements FusionExportInterface
 
 		gd.addMessage( "" );
 
-		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 ) // for numerical instabilities (computed upon instantiation)
+		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 || avgAnisoF[2] != 1.0 ) // for numerical instabilities (computed upon instantiation)
 		{
-			gd.addCheckbox( "Preserve_original data anisotropy (shrink image "
-					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in y and "
-					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in z) ", defaultPreserveAnisotropy );
+			gd.addCheckbox( "Preserve_original data anisotropy (resample image "
+					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in x and "
+					+ TransformationTools.f.format( avgAnisoF[1] ) + " times in y and "
+					+ TransformationTools.f.format( avgAnisoF[2] ) + " times in z) ", defaultPreserveAnisotropy );
 			gd.addMessage(
 				"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
 						"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );

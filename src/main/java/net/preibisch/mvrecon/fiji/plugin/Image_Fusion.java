@@ -105,7 +105,7 @@ public class Image_Fusion implements PlugIn
 
 		final double[] anisoF = fusion.getAnisotropyFactor();
 
-		boolean preserveAniso = !Double.isNaN( anisoF[0] ) && !Double.isNaN(anisoF[1]);
+		boolean preserveAniso = !Double.isNaN( anisoF[0] ) && !Double.isNaN(anisoF[1]) && !Double.isNaN(anisoF[2]);
 
 		if ( preserveAniso ) // flatten the fused image
 		{
@@ -116,10 +116,12 @@ public class Image_Fusion implements PlugIn
 			bb.min( min );
 			bb.max( max );
 
-			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
-			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
-			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
-			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
+			min[ 0 ] = (int)Math.round( Math.floor( min[ 0 ] / anisoF[0] ) );
+			max[ 0 ] = (int)Math.round( Math.ceil( max[ 0 ] / anisoF[0] ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[1] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[1] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[2] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[2] ) );
 
 			final Interval boundingBox = new FinalInterval( min, max );
 
@@ -170,7 +172,7 @@ public class Image_Fusion implements PlugIn
 
 			final RandomAccessibleInterval< FloatType > virtual;
 
-			if ( preserveAniso ) // no flattening of the fused image
+			if ( !preserveAniso ) // no flattening of the fused image
 			{
 				if ( fusion.getNonRigidParameters().isActive() )
 				{
@@ -220,9 +222,9 @@ public class Image_Fusion implements PlugIn
 
 
 					aniso.set(
-							1.0, 0.0, 0.0, 0.0,
-							0.0, 1.0/anisoF[0], 0.0, 0.0,
-							0.0, 0.0, 1.0/anisoF[1], 0.0 );
+							1.0/anisoF[0], 0.0, 0.0, 0.0,
+							0.0, 1.0/anisoF[1], 0.0, 0.0,
+							0.0, 0.0, 1.0/anisoF[2], 0.0 );
 					model.preConcatenate( aniso );
 					registrations.put( viewId, model );
 				}

@@ -106,10 +106,12 @@ public class Image_Quality implements PlugIn
 			bb.min( min );
 			bb.max( max );
 
-			min[ 1 ] = Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
-			max[ 1 ] = Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
-			min[ 2 ] = Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
-			max[ 2 ] = Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
+			min[ 0 ] = (int)Math.round( Math.floor( min[ 0 ] / anisoF[0] ) );
+			max[ 0 ] = (int)Math.round( Math.ceil( max[ 0 ] / anisoF[0] ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[1] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[1] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[2] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[2] ) );
 
 			final Interval boundingBox = new FinalInterval( min, max );
 
@@ -159,9 +161,9 @@ public class Image_Quality implements PlugIn
 					transform = vr.getModel().copy();
 					final AffineTransform3D aniso = new AffineTransform3D();
 					aniso.set(
-							1.0, 0.0, 0.0, 0.0,
-							0.0, 1.0/anisoF[0], 0.0, 0.0,
-							0.0, 0.0, 1.0/anisoF[1], 0.0 );
+							1.0/anisoF[0], 0.0, 0.0, 0.0,
+							0.0, 1.0/anisoF[1], 0.0, 0.0,
+							0.0, 0.0, 1.0/anisoF[2], 0.0 );
 					transform.preConcatenate( aniso );
 				}
 
