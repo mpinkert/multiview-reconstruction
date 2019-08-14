@@ -182,7 +182,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 	public < T extends RealType< T > & NativeType< T >> boolean exportImage(
 			RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
@@ -196,7 +196,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
@@ -224,16 +224,18 @@ public class AppendSpimData2HDF5 implements ImgExport
 		// update the registrations
 		final ViewRegistration vr = spimData.getViewRegistrations().getViewRegistration( newViewId );
 
-		final double scale = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+		final double scaleX = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
+		final double scaleY = Double.isNaN( downsampling[1] ) ? 1.0 : downsampling[1];
+		final double scaleZ = Double.isNaN( downsampling[2] ) ? 1.0 : downsampling[2];
 
 		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
 		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 		final double aiz = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
 
 		final AffineTransform3D m = new AffineTransform3D();
-		m.set( scale * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
-			   0.0f, scale * aiy, 0.0f, bb.min( 1 ) * aiy,
-			   0.0f, 0.0f, scale * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
+		m.set( scaleX * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
+			   0.0f, scaleY * aiy, 0.0f, bb.min( 1 ) * aiy,
+			   0.0f, 0.0f, scaleZ * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
 		final ViewTransform vt = new ViewTransformAffine( "fusion bounding box", m );
 
 		vr.getTransformList().clear();
@@ -287,7 +289,11 @@ public class AppendSpimData2HDF5 implements ImgExport
 		++newAngleId;
 		++newIllumId;
 
-		final double downsampling = Double.isNaN( fusion.getDownsampling() ) ? 1.0 : fusion.getDownsampling();
+		double downsamplingX = Double.isNaN( fusion.getDownsampling()[0] ) ? 1.0 : fusion.getDownsampling()[0];
+		double downsamplingY = Double.isNaN( fusion.getDownsampling()[1] ) ? 1.0 : fusion.getDownsampling()[1];
+		double downsamplingZ = Double.isNaN( fusion.getDownsampling()[2] ) ? 1.0 : fusion.getDownsampling()[2];
+
+		final double[] downsampling = {downsamplingX, downsamplingY, downsamplingZ};
 
 		if ( fusion.getSplittingType() < 2 ) // "Each timepoint & channel" or "Each timepoint, channel & illumination"
 		{
@@ -303,7 +309,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 							newViewSetupId++,
 							c.getName(),
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", Util.getArrayFromValue( downsampling, 3 ) ),
+							new FinalVoxelDimensions( "px", downsampling ),
 							new Tile( newTileId ),
 							c,
 							new Angle( newAngleId ),
@@ -320,7 +326,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 									newViewSetupId++,
 									channels.get( c ).getName() + "_" + illums.get( i ).getName(),
 									fusion.getDownsampledBoundingBox(),
-									new FinalVoxelDimensions( "px", Util.getArrayFromValue( downsampling, 3 ) ),
+									new FinalVoxelDimensions( "px", downsampling ),
 									new Tile( newTileId ),
 									channels.get( newChannelId ),
 									new Angle( newAngleId ),
@@ -337,7 +343,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 							newViewSetupId++,
 							"Fused",
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", Util.getArrayFromValue( downsampling, 3 ) ),
+							new FinalVoxelDimensions( "px", downsampling ),
 							new Tile( newTileId ),
 							new Channel( newChannelId ),
 							new Angle( newAngleId ),
@@ -356,7 +362,7 @@ public class AppendSpimData2HDF5 implements ImgExport
 								newViewSetupId++,
 								vs.getName(),
 								fusion.getDownsampledBoundingBox(),
-								new FinalVoxelDimensions( "px", Util.getArrayFromValue( downsampling, 3 ) ),
+								new FinalVoxelDimensions( "px", downsampling ),
 								vs.getTile(),
 								vs.getChannel(),
 								vs.getAngle(),

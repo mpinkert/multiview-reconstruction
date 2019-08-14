@@ -42,6 +42,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.imageplus.ImagePlusImgFactory;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Pair;
+import net.imglib2.util.Util;
 import net.imglib2.util.ValuePair;
 import net.preibisch.mvrecon.fiji.spimdata.SpimData2;
 import net.preibisch.mvrecon.fiji.spimdata.XmlIoSpimData2;
@@ -117,7 +118,7 @@ public class TestIntensityAdjustment
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Removed " +  removed.size() + " views because they are not present." );
 
 		// downsampling
-		double downsampling = 2;
+		double[] downsampling = {2, 2, 2};
 		double downsamplingEstimation = 20;
 
 		//
@@ -129,7 +130,7 @@ public class TestIntensityAdjustment
 						new IdentityModel(), 0.1 );
 
 		final HashMap< ViewId, AffineModel1D > intensityMapping =
-				IntensityAdjustmentTools.computeIntensityAdjustment( spimData, viewIds, model, bb, downsamplingEstimation, Integer.MAX_VALUE, null );
+				IntensityAdjustmentTools.computeIntensityAdjustment( spimData, viewIds, model, bb, Util.getArrayFromValue(downsamplingEstimation, 3), Integer.MAX_VALUE, null );
 
 		final RandomAccessibleInterval< FloatType > virtualBalanced = FusionTools.fuseVirtual( spimData, viewIds, false, false, 1, bb, downsampling, intensityMapping ).getA();
 		final RandomAccessibleInterval< FloatType > virtual = FusionTools.fuseVirtual( spimData, viewIds, false, false, 1, bb, downsampling, null ).getA();

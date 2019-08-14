@@ -53,7 +53,7 @@ import net.preibisch.mvrecon.process.interestpointregistration.pairwise.constell
 
 public class QualityGUI implements FusionExportInterface
 {
-	public static double defaultDownsampling = 8.0;
+	public static double defaultDownsampling[] = {8.0, 8.0, 8.0};
 	public static int defaultBB = 0;
 
 	public static boolean defaultUseRelativeFRC = true;
@@ -76,7 +76,7 @@ public class QualityGUI implements FusionExportInterface
 
 	protected int boundingBox = defaultBB;
 	protected int splittingType = defaultSplittingType;
-	protected double downsampling = defaultDownsampling;
+	protected double[] downsampling = defaultDownsampling;
 	protected boolean preserveAnisotropy = defaultPreserveAnisotropy;
 	protected double[] avgAnisoF;
 	protected boolean useRelativeFRC = defaultUseRelativeFRC;
@@ -134,8 +134,11 @@ public class QualityGUI implements FusionExportInterface
 	@Override
 	public Interval getDownsampledBoundingBox()
 	{
-		if ( !Double.isNaN( downsampling ) )
-			return TransformVirtual.scaleBoundingBox( getBoundingBox(), 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+
+		if ( !Double.isNaN( downsampling[0] ) )
+
+			return TransformVirtual.scaleBoundingBox( getBoundingBox(), factor );
 		else
 			return getBoundingBox();
 	}
@@ -144,7 +147,9 @@ public class QualityGUI implements FusionExportInterface
 	public int getPixelType() { return 0; }
 
 	@Override
-	public double getDownsampling(){ return downsampling; }
+	public double[] getDownsampling(){
+		double[] downsampling_here = {downsampling[0], downsampling[1], downsampling[2]};
+		return downsampling_here; }
 
 	@Override
 	public double[] getAnisotropyFactor() { return avgAnisoF; }
@@ -179,7 +184,9 @@ public class QualityGUI implements FusionExportInterface
 
 		gd.addMessage( "" );
 
-		gd.addSlider( "Downsampling", 1.0, 16.0, defaultDownsampling );
+		gd.addSlider( "Downsampling in X", 1.0, 16.0, defaultDownsampling[0] );
+		gd.addSlider( "Downsampling in Y", 1.0, 16.0, defaultDownsampling[1] );
+		gd.addSlider( "Downsampling in Z", 1.0, 16.0, defaultDownsampling[2] );
 
 		gd.addMessage( "" );
 
@@ -214,10 +221,13 @@ public class QualityGUI implements FusionExportInterface
 
 		if ( !PluginHelper.isHeadless() )
 		{
+			TextField[] downsample_fields = {(TextField)gd.getNumericFields().get( 0 ),
+				(TextField)gd.getNumericFields().get( 1 ), (TextField)gd.getNumericFields().get( 2 )};
+
 			final ManageQualityDialogListeners m = new ManageQualityDialogListeners(
 					gd,
 					(Choice)gd.getChoices().get( 0 ),
-					(TextField)gd.getNumericFields().get( 0 ),
+					downsample_fields,
 					avgAnisoF[1] > 1.01 ? (Checkbox)gd.getCheckboxes().lastElement() : null,
 					(Choice)gd.getChoices().get( 1 ),
 					label1,
@@ -247,10 +257,16 @@ public class QualityGUI implements FusionExportInterface
 		}
 
 		boundingBox = defaultBB = gd.getNextChoiceIndex();
-		downsampling = defaultDownsampling = gd.getNextNumber();
+		downsampling[0] = defaultDownsampling[0] = gd.getNextNumber();
+		downsampling[1] = defaultDownsampling[1] = gd.getNextNumber();
+		downsampling[2] = defaultDownsampling[2] = gd.getNextNumber();
+				boolean no_downsampling = downsampling[0] == 1.0 && downsampling[1] == 1.0 && downsampling[2] == 1.0;
 
-		if ( downsampling == 1.0 )
-			downsampling = Double.NaN;
+		if ( no_downsampling  ) {
+			downsampling[0] = Double.NaN;
+			downsampling[1] = Double.NaN;
+			downsampling[2] = Double.NaN;
+		}
 
 		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 )
 			preserveAnisotropy = defaultPreserveAnisotropy = gd.getNextBoolean();

@@ -71,7 +71,7 @@ public class ProcessInputImages< V extends ViewId >
 	final Interval bb;
 	Interval downsampledBB;
 	final ExecutorService service;
-	final double downsampling;
+	final double[] downsampling;
 	final boolean useWeightsFusion, useWeightsDecon;
 	final float blendingRangeFusion, blendingBorderFusion, blendingRangeDeconvolution, blendingBorderDeconvolution;
 
@@ -85,7 +85,7 @@ public class ProcessInputImages< V extends ViewId >
 			final Collection< Group< V > > groups,
 			final ExecutorService service,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final boolean useWeightsFusion,
 			final float blendingRangeFusion,
 			final float blendingBorderFusion,
@@ -120,7 +120,7 @@ public class ProcessInputImages< V extends ViewId >
 			final Collection< Group< V > > groups,
 			final ExecutorService service,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments )
 	{
 		this(
@@ -137,7 +137,7 @@ public class ProcessInputImages< V extends ViewId >
 			final Interval bb,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments )
 	{
-		this( spimData, groups, service, bb, Double.NaN, intensityAdjustments );
+		this( spimData, groups, service, bb, Util.getArrayFromValue(Double.NaN, 3), intensityAdjustments );
 	}
 
 	public ArrayList< Group< V > > getGroups() { return groups; }
@@ -281,7 +281,7 @@ public class ProcessInputImages< V extends ViewId >
 			final HashMap< V, AffineTransform3D > models,
 			final Collection< Group< V > > groups,
 			final Interval boundingBox,
-			final double downsampling,
+			final double[] downsampling,
 			final float[] blendingRangeFusion,
 			final float[] blendingBorderFusion,
 			final float[] blendingRangeDecon,
@@ -292,8 +292,9 @@ public class ProcessInputImages< V extends ViewId >
 
 		// scale the bounding box if necessary
 		final Interval bb;
-		if ( !Double.isNaN( downsampling ) )
-			bb = TransformVirtual.scaleBoundingBox( boundingBox, 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+		if ( !Double.isNaN( downsampling[0] ) )
+			bb = TransformVirtual.scaleBoundingBox( boundingBox, factor);
 		else
 			bb = boundingBox;
 
@@ -316,10 +317,10 @@ public class ProcessInputImages< V extends ViewId >
 				AffineTransform3D model = vr.getModel();
 
 				// adjust the model for downsampling
-				if ( !Double.isNaN( downsampling ) )
+				if ( !Double.isNaN( downsampling[0] ) )
 				{
 					model = model.copy();
-					TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+					TransformVirtual.scaleTransform( model, factor );
 				}
 
 				// we need to add a copy here since below the model might be modified for downsampled opening

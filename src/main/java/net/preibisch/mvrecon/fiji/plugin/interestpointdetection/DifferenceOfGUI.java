@@ -602,10 +602,10 @@ public abstract class DifferenceOfGUI extends InterestPointDetectionGUI
 				f.format( 1.0/targetDS[ 0 ] ) + ", " + f.format( 1.0/targetDS[ 1 ] ) + ", " + f.format( 1.0/targetDS[ 2 ] ) + ") after applying mapback." );
 
 		// now scale z so we have one common downsample factor
-		final double ds = 1.0 / targetDS[ 0 ];
+		final double[] ds ={1.0 / targetDS[ 0 ], 1.0 / targetDS[ 0 ], 1.0 / targetDS[ 0 ]};
 		targetDS[ 0 ] = 1.0;
 		targetDS[ 1 ] = 1.0;
-		targetDS[ 2 ] = ( 1.0 / downsampleZ ) / (scale[ 2 ] / ds);
+		targetDS[ 2 ] = ( 1.0 / downsampleZ ) / (scale[ 2 ] / ds[2]);
 
 		final AffineTransform3D scalingTransform = new AffineTransform3D();
 		scalingTransform.set( targetDS[ 0 ], 0, 0 );
@@ -614,7 +614,7 @@ public abstract class DifferenceOfGUI extends InterestPointDetectionGUI
 
 		IOFunctions.println( "Using downsampling " + f.format( ds ) + " and scaling of : (" +
 				f.format( targetDS[ 0 ] ) + ", " + f.format( targetDS[ 1 ] ) + ", " + f.format( targetDS[ 2 ] ) + ") resulting in downsampling (" +
-				f.format( 1.0/((scale[ 0 ] * targetDS[ 0 ])/ds) ) + ", " + f.format( 1.0/((scale[ 1 ] * targetDS[ 1 ])/ds) ) + ", " + f.format( 1.0/((scale[ 2 ] * targetDS[ 2 ])/ds) ) + ")" );
+				f.format( 1.0/((scale[ 0 ] * targetDS[ 0 ])/ds[0]) ) + ", " + f.format( 1.0/((scale[ 1 ] * targetDS[ 1 ])/ds[1]) ) + ", " + f.format( 1.0/((scale[ 2 ] * targetDS[ 2 ])/ds[2]) ) + ")" );
 
 		// assemble temporary registrations and dimensions
 		// for fusion and bounding box
@@ -638,7 +638,8 @@ public abstract class DifferenceOfGUI extends InterestPointDetectionGUI
 
 		BoundingBox bb = BoundingBoxTools.maximalBoundingBox( group.getViews(), dimensions, registrations, "max bounding box" );
 		long megabytes = Math.round( ( FusionTools.numPixels( bb, ds ) * 4) / (1024.0*1024.0) );
-		IOFunctions.println( "Effective boundingbox: " + Util.printInterval( TransformVirtual.scaleBoundingBox( bb, 1.0 / ds ) ) + " estimated size=" + megabytes + " MB" );
+		double[] factor = {1.0/ds[0], 1.0/ds[1], 1.0/ds[2]};
+		IOFunctions.println( "Effective boundingbox: " + Util.printInterval( TransformVirtual.scaleBoundingBox( bb, factor ) ) + " estimated size=" + megabytes + " MB" );
 
 		if ( fuseFrom > 0 || fuseTo < 100 )
 		{
@@ -655,7 +656,7 @@ public abstract class DifferenceOfGUI extends InterestPointDetectionGUI
 			bb = new BoundingBox( min, max );
 
 			megabytes = Math.round( ( FusionTools.numPixels( bb, ds ) * 4) / (1024.0*1024.0) );
-			IOFunctions.println( "Cropped Effective boundingbox: " + Util.printInterval( TransformVirtual.scaleBoundingBox( bb, 1.0 / ds ) ) + " estimated size=" + megabytes + " MB" );
+			IOFunctions.println( "Cropped Effective boundingbox: " + Util.printInterval( TransformVirtual.scaleBoundingBox( bb, factor ) ) + " estimated size=" + megabytes + " MB" );
 		}
 
 		RandomAccessibleInterval< FloatType > img = FusionTools.fuseVirtual(

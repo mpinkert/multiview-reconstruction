@@ -113,7 +113,7 @@ public class FusionTools
 	public static double defaultContentBasedSigma1 = 20;
 	public static double defaultContentBasedSigma2 = 40;
 
-	public static long numPixels( final Interval bb, final double downsampling )
+	public static long numPixels( final Interval bb, final double[] downsampling )
 	{
 		final long[] min = new long[ bb.numDimensions() ];
 		final long[] max = new long[ bb.numDimensions() ];
@@ -124,7 +124,7 @@ public class FusionTools
 		return numPixels( min, max, downsampling );
 	}
 
-	public static long numPixels( final long[] dim, final double downsampling )
+	public static long numPixels( final long[] dim, final double[] downsampling )
 	{
 		final long[] min = new long[ dim.length ];
 		final long[] max = new long[ dim.length ];
@@ -138,14 +138,16 @@ public class FusionTools
 		return numPixels( min, max, downsampling );
 	}
 
-	public static long numPixels( final long[] min, final long[] max, final double downsampling )
+	public static long numPixels( final long[] min, final long[] max, final double[] downsampling )
 	{
 		final double ds;
 
-		if ( Double.isNaN( downsampling ) )
+		// todo: fix this for different dowsampling factors
+
+		if ( Double.isNaN( downsampling[0] ) )
 			ds = 1;
 		else
-			ds = downsampling;
+			ds = downsampling[0];
 
 		long numpixels = 1;
 
@@ -167,11 +169,12 @@ public class FusionTools
 			final AbstractSpimData< ? extends AbstractSequenceDescription< ?, ?, ? extends ImgLoader > > spimData,
 			final Collection< ? extends ViewId > viewIds )
 	{
+		double[] downsample_here = {Double.NaN, Double.NaN, Double.NaN};
 		return fuseVirtual(
 				spimData,
 				viewIds,
 				new BoundingBoxMaximal( viewIds, spimData ).estimate( "Full Bounding Box" ),
-				Double.NaN,
+				downsample_here,
 				null );
 	}
 
@@ -187,7 +190,7 @@ public class FusionTools
 	public static Pair< RandomAccessibleInterval< FloatType >, AffineTransform3D > fuseVirtual(
 			final AbstractSpimData< ? extends AbstractSequenceDescription< ?, ?, ? extends ImgLoader > > spimData,
 			final Collection< ? extends ViewId > viewIds,
-			double downsampling )
+			double[] downsampling )
 	{
 		return fuseVirtual(
 				spimData,
@@ -210,7 +213,7 @@ public class FusionTools
 	public static Pair< RandomAccessibleInterval< FloatType >, AffineTransform3D > fuseVirtual(
 			final SpimData2 spimData,
 			final Collection< ? extends ViewId > viewIds,
-			double downsampling,
+			double[] downsampling,
 			final boolean adjustIntensities )
 	{
 		return fuseVirtual(
@@ -235,7 +238,7 @@ public class FusionTools
 			final AbstractSpimData< ? > spimData,
 			final Collection< ? extends ViewId > viewIds,
 			Interval bb,
-			double downsampling )
+			double[] downsampling )
 	{
 		return fuseVirtual( spimData, viewIds, bb, downsampling, null );
 	}
@@ -255,7 +258,7 @@ public class FusionTools
 			final AbstractSpimData< ? > spimData,
 			final Collection< ? extends ViewId > viewIds,
 			Interval bb,
-			double downsampling,
+			double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments )
 	{
 		return fuseVirtual( spimData, viewIds, true, false, 1, bb, downsampling, intensityAdjustments );
@@ -268,7 +271,7 @@ public class FusionTools
 			final boolean useContentBased,
 			final int interpolation,
 			final Interval boundingBox,
-			final double downsampling,
+			final double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments )
 	{
 		final BasicImgLoader imgLoader = spimData.getSequenceDescription().getImgLoader();
@@ -295,17 +298,21 @@ public class FusionTools
 	 */
 	public static Pair< Interval, AffineTransform3D > createDownsampledBoundingBox(
 			final Interval boundingBox,
-			final double downsampling )
+			final double[] downsampling )
 	{
 		final Interval bbDS;
-		
-		if ( Double.isNaN( downsampling ) || downsampling == 1.0 )
+
+		boolean no_downsampling = downsampling[0] == 1.0 && downsampling[1] == 1.0 && downsampling[2] == 1.0;
+
+		if ( Double.isNaN( downsampling[0] ) || no_downsampling )
 		{
 			bbDS = new FinalInterval( boundingBox );
 		}
 		else
 		{
-			bbDS = TransformVirtual.scaleBoundingBox( boundingBox, 1.0 / downsampling );
+			double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+
+			bbDS = TransformVirtual.scaleBoundingBox( boundingBox, factor);
 		}
 
 		// there is rounding when scaling the bounding box ...
@@ -313,12 +320,13 @@ public class FusionTools
 		final double[] translation = new double[ boundingBox.numDimensions() ];
 
 		for ( int d = 0; d < offset.length; ++d )
-			translation[ d ] = ( offset[ d ] + bbDS.min( d ) ) * downsampling;
+			translation[ d ] = ( offset[ d ] + bbDS.min( d ) ) * downsampling[d];
 
 		// the virtual image is zeroMin, this transformation puts it into the global coordinate system
 		final AffineTransform3D t = new AffineTransform3D();
-		t.scale( downsampling );
-		t.translate( translation );
+		t.set(  downsampling[0], 0.0f, 0.0f, translation[0],
+				0.0f, downsampling[1], 0.0f, translation[1],
+				0.0f, 0.0f, downsampling[2], translation[2] );
 
 		return new ValuePair<>( bbDS, t );
 	}
@@ -339,7 +347,7 @@ public class FusionTools
 			final boolean useContentBased,
 			final int interpolation,
 			final Interval boundingBox,
-			final double downsampling,
+			final double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments )
 	{
 
@@ -395,10 +403,11 @@ public class FusionTools
 		{
 			AffineTransform3D model = registrations.get( viewId );
 
-			if ( !Double.isNaN( downsampling ) )
+			if ( !Double.isNaN( downsampling[0] ) )
 			{
+				double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
 				model = model.copy();
-				TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+				TransformVirtual.scaleTransform( model, factor );
 			}
 
 			// this modifies the model so it maps from a smaller image to the global coordinate space,

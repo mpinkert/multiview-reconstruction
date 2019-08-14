@@ -217,12 +217,16 @@ public class DownsampleTools
 	 * @param downsampling - the downsampling, Double.NaN means 1.0
 	 * @return - a String describing it
 	 */
-	public static String printDownsampling( final double downsampling )
+	public static String printDownsampling( final double[] downsampling )
 	{
-		if ( Double.isNaN( downsampling ) )
+		String output;
+		if ( Double.isNaN( downsampling[0] ) )
 			return "None";
 		else
-			return Double.toString( downsampling );
+			output = "X: " + Double.toString(downsampling[0])
+					+ ", Y: " + Double.toString(downsampling[1])
+					+ ", Z: " + Double.toString(downsampling[2]);
+			return output;
 	}
 
 	public static String[] availableDownsamplings( final AbstractSpimData< ? > data, final ViewId viewId )

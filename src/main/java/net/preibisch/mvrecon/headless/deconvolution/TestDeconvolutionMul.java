@@ -108,7 +108,7 @@ public class TestDeconvolutionMul
 			IOFunctions.println( "(" + new Date(System.currentTimeMillis()) + "): " + Group.gvids( Group.getViewsSorted( virtualView.getViews() ) ) );
 
 		final double osemSpeedUp = 1.0;
-		final double downsampling = 1.0;
+		final double[] downsampling = {1.0, 1.0, 1.0};
 
 		final ProcessInputImages< V > fusion = new ProcessInputImages<>(
 				spimData,
@@ -121,7 +121,7 @@ public class TestDeconvolutionMul
 				FusionTools.defaultBlendingBorder,
 				true,
 				MultiViewDeconvolution.defaultBlendingRange,
-				MultiViewDeconvolution.defaultBlendingBorder / ( Double.isNaN( downsampling ) ? 1.0f : (float)downsampling ),
+				MultiViewDeconvolution.defaultBlendingBorder / ( Double.isNaN( downsampling[0] ) ? 1.0f : (float)downsampling[0] ),
 				spimData.getIntensityAdjustments().getIntensityAdjustments() );
 
 		IOFunctions.println( "(" + new Date(System.currentTimeMillis()) + "): Virtual Fusion of 'virtual views' " );
@@ -241,10 +241,12 @@ public class TestDeconvolutionMul
 			debugImp = decon.getDebugImage();
 
 			ImagePlus imp = DisplayImage.getImagePlusInstance( psi, false, "Deconvolved", Double.NaN, Double.NaN );
-			imp.getCalibration().xOrigin = -(boundingBox.min( 0 ) / downsampling);
-			imp.getCalibration().yOrigin = -(boundingBox.min( 1 ) / downsampling);
-			imp.getCalibration().zOrigin = -(boundingBox.min( 2 ) / downsampling);
-			imp.getCalibration().pixelWidth = imp.getCalibration().pixelHeight = imp.getCalibration().pixelDepth = downsampling;
+			imp.getCalibration().xOrigin = -(boundingBox.min( 0 ) / downsampling[0]);
+			imp.getCalibration().yOrigin = -(boundingBox.min( 1 ) / downsampling[1]);
+			imp.getCalibration().zOrigin = -(boundingBox.min( 2 ) / downsampling[2]);
+			imp.getCalibration().pixelWidth = downsampling[0];
+			imp.getCalibration().pixelHeight = downsampling[1];
+			imp.getCalibration().pixelDepth = downsampling[2];
 			imp.show();
 
 			service.shutdown();

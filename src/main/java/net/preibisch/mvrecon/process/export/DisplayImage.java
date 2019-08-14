@@ -52,21 +52,23 @@ public class DisplayImage implements ImgExport, Calibrateable
 
 	public < T extends RealType< T > & NativeType< T > > void exportImage( final RandomAccessibleInterval< T > img )
 	{
-		double[] anisoF = {Double.NaN, Double.NaN};
-		exportImage( img, null, Double.NaN, anisoF, "Image", null );
+		double[] downsample = {Double.NaN, Double.NaN, Double.NaN};
+		double[] anisoF =  {Double.NaN, Double.NaN, Double.NaN};
+		exportImage( img, null, downsample, anisoF, "Image", null );
 	}
 
 	public < T extends RealType< T > & NativeType< T > > void exportImage( final RandomAccessibleInterval< T > img, final String title )
 	{
-		double[] anisoF = {Double.NaN, Double.NaN};
-		exportImage( img, null, Double.NaN, anisoF, title, null );
+		double[] downsample = {Double.NaN, Double.NaN, Double.NaN};
+		double[] anisoF = {Double.NaN, Double.NaN, Double.NaN};
+		exportImage( img, null, downsample, anisoF, title, null );
 	}
 
 	@Override
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
@@ -77,7 +79,7 @@ public class DisplayImage implements ImgExport, Calibrateable
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
@@ -103,21 +105,23 @@ public class DisplayImage implements ImgExport, Calibrateable
 		return true;
 	}
 
-	public static void setCalibration( final ImagePlus imp, final Interval bb, final double downsampling, final double[] anisoF, final double cal, final String unit )
+	public static void setCalibration( final ImagePlus imp, final Interval bb, final double downsampling[], final double[] anisoF, final double cal, final String unit )
 	{
-		final double ds = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+		final double dsx = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
+		final double dsy = Double.isNaN( downsampling[1] ) ? 1.0 : downsampling[1];
+		final double dsz = Double.isNaN( downsampling[2] ) ? 1.0 : downsampling[2];
 		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
 		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 		final double aiz = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
 
 		if ( bb != null )
 		{
-			imp.getCalibration().xOrigin = -(bb.min( 0 ) / ds) * cal;
-			imp.getCalibration().yOrigin = -(bb.min( 1 ) / ds) * cal;
-			imp.getCalibration().zOrigin = -(bb.min( 2 ) / ds) * cal;
-			imp.getCalibration().pixelWidth = ds * cal * aix;
-			imp.getCalibration().pixelHeight = ds * cal * aiy;
-			imp.getCalibration().pixelDepth = ds * cal * aiz;
+			imp.getCalibration().xOrigin = -(bb.min( 0 ) / dsx) * cal;
+			imp.getCalibration().yOrigin = -(bb.min( 1 ) / dsy) * cal;
+			imp.getCalibration().zOrigin = -(bb.min( 2 ) / dsx) * cal;
+			imp.getCalibration().pixelWidth = dsx * cal * aix;
+			imp.getCalibration().pixelHeight = dsy * cal * aiy;
+			imp.getCalibration().pixelDepth = dsz * cal * aiz;
 		}
 
 		imp.getCalibration().setUnit( unit );

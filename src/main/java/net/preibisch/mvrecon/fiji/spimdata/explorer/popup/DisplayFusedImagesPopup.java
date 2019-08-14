@@ -95,17 +95,21 @@ public class DisplayFusedImagesPopup extends JMenu implements ExplorerWindowSeta
 						for ( final int ds : quickDownsampling )
 						{
 							final JMenuItem fused;
-							final double downsample;
+							final double[] downsample = {1, 1, 1};
 
 							if ( ds == 1 )
 							{
 								fused = new JMenuItem( "Not downsampled" );
-								downsample = Double.NaN;
+								downsample[0] = Double.NaN;
+								downsample[1] = Double.NaN;
+								downsample[2] = Double.NaN;
 							}
 							else
 							{
 								fused = new JMenuItem( "Downsampled " + ds + "x" );
-								downsample = ds;
+								downsample[0] = ds;
+								downsample[1] = ds;
+								downsample[2] = ds;
 							}
 
 							fused.addActionListener( new DisplayVirtualFused( spimData, views, bb, downsample, ImgDataType.values()[ defaultCache ] ) );
@@ -164,10 +168,10 @@ public class DisplayFusedImagesPopup extends JMenu implements ExplorerWindowSeta
 		final SpimData spimData;
 		final ArrayList< ViewId > views;
 		final Interval bb;
-		final double downsampling;
+		final double[] downsampling;
 		final ImgDataType imgType;
 
-		public DisplayVirtualFused( final SpimData spimData, final ArrayList< ViewId > views, final Interval bb, final double downsampling, final ImgDataType imgType )
+		public DisplayVirtualFused( final SpimData spimData, final ArrayList< ViewId > views, final Interval bb, final double[] downsampling, final ImgDataType imgType )
 		{
 			this.spimData = spimData;
 			this.views = views;

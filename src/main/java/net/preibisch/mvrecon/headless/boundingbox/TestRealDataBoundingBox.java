@@ -32,6 +32,7 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ViewId;
 import mpicbg.spim.io.IOFunctions;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.util.Util;
 import net.preibisch.mvrecon.fiji.plugin.boundingbox.MinFilterThresholdBoundingBoxGUI;
 import net.preibisch.mvrecon.fiji.spimdata.SpimData2;
 import net.preibisch.mvrecon.fiji.spimdata.XmlIoSpimData2;
@@ -61,6 +62,8 @@ public class TestRealDataBoundingBox
 
 		System.out.println( viewIds.size() + " views in total." );
 
+		double[] downsampling = {8, 8, 8};
+
 		final BoundingBoxMinFilterThreshold estimation = new BoundingBoxMinFilterThreshold(
 				spimData,
 				service,
@@ -69,12 +72,12 @@ public class TestRealDataBoundingBox
 				MinFilterThresholdBoundingBoxGUI.defaultBackgroundIntensity,
 				MinFilterThresholdBoundingBoxGUI.defaultDiscardedObjectSize,
 				true,
-				8 );
+				downsampling );
 
 		final BoundingBox bb = estimation.estimate( "MinFilterThresholdBoundingBoxGUI" );
 
 		service.shutdown();
 
-		FusionTools.displayCopy( FusionTools.fuseVirtual( spimData, viewIds, true, false, 1, bb, 2.0, null ).getA(), estimation.getMinIntensity(), estimation.getMaxIntensity() ).show();
+		FusionTools.displayCopy( FusionTools.fuseVirtual( spimData, viewIds, true, false, 1, bb, Util.getArrayFromValue(2.0, 3), null ).getA(), estimation.getMinIntensity(), estimation.getMaxIntensity() ).show();
 	}
 }

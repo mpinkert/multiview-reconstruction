@@ -63,7 +63,7 @@ public class BoundingBoxMinFilterThreshold implements BoundingBoxEstimation
 	final double background;
 	final int radiusMin;
 	final boolean displaySegmentationImage;
-	final int downsampling;
+	final double[] downsampling;
 
 	double extraSpaceFactor = 3;
 	float[] minmax;
@@ -76,7 +76,7 @@ public class BoundingBoxMinFilterThreshold implements BoundingBoxEstimation
 			final double background,
 			final int discardedObjectSize,
 			final boolean displaySegmentationImage,
-			final int downsampling )
+			final double[] downsampling )
 	{
 		this.spimData = spimData;
 		this.service = service;
@@ -108,7 +108,7 @@ public class BoundingBoxMinFilterThreshold implements BoundingBoxEstimation
 						service );
 
 		final float[] minmax = FusionTools.minMax( img );
-		final int effR = Math.max( radiusMin / downsampling, 1 );
+		final int effR = Math.max( radiusMin / (int) downsampling[0], 1 );
 		final double threshold = (minmax[ 1 ] - minmax[ 0 ]) * ( background / 100.0 ) + minmax[ 0 ];
 
 		IOFunctions.println( "Fused image minimum: " + minmax[ 0 ] );
@@ -118,7 +118,7 @@ public class BoundingBoxMinFilterThreshold implements BoundingBoxEstimation
 		if ( displaySegmentationImage )
 			DisplayImage.getImagePlusInstance( img, false, "Fused input", minmax[ 0 ], minmax[ 1 ] ).show();
 
-		IOFunctions.println( "Computing minimum filter with effective radius of " + effR + " (downsampling=" + downsampling + ")" );
+		IOFunctions.println( "Computing minimum filter with effective radius of " + effR + " (downsampling=" + downsampling[0] + ")" );
 
 		img = computeLazyMinFilter( img, effR );
 
@@ -140,8 +140,8 @@ public class BoundingBoxMinFilterThreshold implements BoundingBoxEstimation
 		for ( int d = 0; d < img.numDimensions(); ++d )
 		{
 			// downsampling
-			min[ d ] *= downsampling;
-			max[ d ] *= downsampling;
+			min[ d ] *= downsampling[0];
+			max[ d ] *= downsampling[0];
 			
 			// global coordinates
 			min[ d ] += maxBB.getMin()[ d ];

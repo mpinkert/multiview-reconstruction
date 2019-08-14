@@ -88,7 +88,7 @@ public class ExportSpimData2TIFF implements ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
@@ -100,7 +100,7 @@ public class ExportSpimData2TIFF implements ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
@@ -120,16 +120,19 @@ public class ExportSpimData2TIFF implements ImgExport
 		// update the registrations
 		final ViewRegistration vr = newSpimData.getViewRegistrations().getViewRegistration( newViewId );
 
-		final double scale = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+
+		final double scaleX = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
+		final double scaleY = Double.isNaN( downsampling[1] ) ? 1.0 : downsampling[1];
+		final double scaleZ = Double.isNaN( downsampling[2] ) ? 1.0 : downsampling[2];
 
 		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
 		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 		final double aiz = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
 
 		final AffineTransform3D m = new AffineTransform3D();
-		m.set( scale * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
-			   0.0f, scale * aiy, 0.0f, bb.min( 1 ) * aiy,
-			   0.0f, 0.0f, scale * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
+		m.set( scaleX * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
+			   0.0f, scaleY * aiy, 0.0f, bb.min( 1 ) * aiy,
+			   0.0f, 0.0f, scaleZ * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
 		final ViewTransform vt = new ViewTransformAffine( "fusion bounding box", m );
 
 		vr.getTransformList().clear();
@@ -247,14 +250,17 @@ public class ExportSpimData2TIFF implements ImgExport
 		}
 	}
 
-	public static Pair< List< TimePoint >, List< ViewSetup > > defineNewViewSetups( final FusionExportInterface fusion, double downsampling, double[] anisoF )
+	public static Pair< List< TimePoint >, List< ViewSetup > > defineNewViewSetups( final FusionExportInterface fusion, double[] downsampling, double[] anisoF )
 	{
 		final List< ViewSetup > newViewSetups = new ArrayList<>();
 		final List< TimePoint > newTimepoints;
 
 		int newViewSetupId = 0;
 
-		downsampling = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+		downsampling[0] = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
+		downsampling[1] = Double.isNaN( downsampling[1] ) ? 1.0 : downsampling[1];
+		downsampling[2] = Double.isNaN( downsampling[2] ) ? 1.0 : downsampling[2];
+
 		anisoF[0] = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
 		anisoF[1] = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
 		anisoF[2] = Double.isNaN( anisoF[2] ) ? 1.0 : anisoF[2];
@@ -274,7 +280,7 @@ public class ExportSpimData2TIFF implements ImgExport
 							newViewSetupId++,
 							c.getName(),
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
+							new FinalVoxelDimensions( "px", new double[] { downsampling[0]*anisoF[0], downsampling[1] * anisoF[1], downsampling[2] * anisoF[2] } ),
 							new Tile( 0 ),
 							c,
 							new Angle( 0 ),
@@ -291,7 +297,7 @@ public class ExportSpimData2TIFF implements ImgExport
 									newViewSetupId++,
 									channels.get( c ).getName() + "_" + illums.get( i ).getName(),
 									fusion.getDownsampledBoundingBox(),
-									new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
+									new FinalVoxelDimensions( "px", new double[] { downsampling[0]*anisoF[0], downsampling[1] * anisoF[1], downsampling[2] * anisoF[2] } ),
 									new Tile( 0 ),
 									channels.get( c ),
 									new Angle( 0 ),
@@ -308,7 +314,7 @@ public class ExportSpimData2TIFF implements ImgExport
 							0,
 							"Fused",
 							fusion.getDownsampledBoundingBox(),
-							new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
+							new FinalVoxelDimensions( "px", new double[] { downsampling[0]*anisoF[0], downsampling[1] * anisoF[1], downsampling[2] * anisoF[2] } ),
 							new Tile( 0 ),
 							new Channel( 0 ),
 							new Angle( 0 ),
@@ -327,7 +333,7 @@ public class ExportSpimData2TIFF implements ImgExport
 								vs.getId(),
 								vs.getName(),
 								fusion.getDownsampledBoundingBox(),
-								new FinalVoxelDimensions( "px", new double[] { downsampling, downsampling * anisoF[0], downsampling * anisoF[1] } ),
+								new FinalVoxelDimensions( "px", new double[] { downsampling[0]*anisoF[0], downsampling[1] * anisoF[1], downsampling[2] * anisoF[2] } ),
 								vs.getTile(),
 								vs.getChannel(),
 								vs.getAngle(),

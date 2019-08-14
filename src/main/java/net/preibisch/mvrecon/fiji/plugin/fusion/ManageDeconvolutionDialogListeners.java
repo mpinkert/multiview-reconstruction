@@ -44,7 +44,7 @@ import net.preibisch.mvrecon.process.interestpointregistration.pairwise.constell
 public class ManageDeconvolutionDialogListeners
 {
 	final GenericDialog gd;
-	final TextField downsampleField;
+	final TextField[] downsampleField;
 	final Choice boundingBoxChoice, inputCacheChoice, nonRigidChoice, weightCacheChoice, blockChoice, computeOnChoice, splitChoice;
 	final Label label1;
 	final Label label2;
@@ -55,7 +55,7 @@ public class ManageDeconvolutionDialogListeners
 	public ManageDeconvolutionDialogListeners(
 			final GenericDialog gd,
 			final Choice boundingBoxChoice,
-			final TextField downsampleField,
+			final TextField[] downsampleField,
 			final Choice inputCacheChoice,
 			final Choice nonRigidChoice,
 			final Choice weightCacheChoice,
@@ -82,8 +82,14 @@ public class ManageDeconvolutionDialogListeners
 		this.boundingBoxChoice.addItemListener( new ItemListener() { @Override
 			public void itemStateChanged(ItemEvent e) { update(); } });
 
-		this.downsampleField.addTextListener( new TextListener() { @Override
+		this.downsampleField[0].addTextListener( new TextListener() { @Override
 			public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[1].addTextListener( new TextListener() { @Override
+		public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[2].addTextListener( new TextListener() { @Override
+		public void textValueChanged(TextEvent e) { update(); } });
 
 		this.inputCacheChoice.addItemListener( new ItemListener() { @Override
 			public void itemStateChanged(ItemEvent e) { update(); } });
@@ -117,7 +123,10 @@ public class ManageDeconvolutionDialogListeners
 		*/
 
 		decon.boundingBox = boundingBoxChoice.getSelectedIndex();
-		decon.downsampling = Integer.parseInt( downsampleField.getText() );
+		decon.downsampling[0] = Integer.parseInt( downsampleField[0].getText() );
+		decon.downsampling[1] = Integer.parseInt( downsampleField[1].getText() );
+		decon.downsampling[2] = Integer.parseInt( downsampleField[2].getText() );
+
 		decon.cacheTypeInputImg = inputCacheChoice.getSelectedIndex();
 		decon.cacheTypeWeights = weightCacheChoice.getSelectedIndex();
 		decon.blockSizeIndex = blockChoice.getSelectedIndex();
@@ -163,9 +172,9 @@ public class ManageDeconvolutionDialogListeners
 		final int[] max = bb.getMax();
 
 		label2.setText( "Dimensions: " + 
-				Math.round( (max[ 0 ] - min[ 0 ] + 1)/decon.downsampling ) + " x " + 
-				Math.round( (max[ 1 ] - min[ 1 ] + 1)/decon.downsampling ) + " x " + 
-				Math.round( (max[ 2 ] - min[ 2 ] + 1)/decon.downsampling ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
+				Math.round( (max[ 0 ] - min[ 0 ] + 1)/decon.downsampling[0] ) + " x " +
+				Math.round( (max[ 1 ] - min[ 1 ] + 1)/decon.downsampling[1] ) + " x " +
+				Math.round( (max[ 2 ] - min[ 2 ] + 1)/decon.downsampling[2] ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
 	}
 
 	public long[] maxBlock()
@@ -188,7 +197,7 @@ public class ManageDeconvolutionDialogListeners
 		long maxNumPixelsInput = FusionGUI.maxNumInputPixelsPerInputGroup( decon.getSpimData(), decon.getViews(), decon.getSplittingType() );
 
 		// assume he have to load 50% higher resolved data
-		final double inputDownSampling = decon.isMultiResolution() ? decon.downsampling / 1.5 : 1.0;
+		final double inputDownSampling = decon.isMultiResolution() ? decon.downsampling[0] / 1.5 : 1.0;
 
 		// assume something about caching
 		final long twentyPercentRAM = Runtime.getRuntime().maxMemory() / ( 1024*1024*5 );

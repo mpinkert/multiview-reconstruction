@@ -74,11 +74,12 @@ public class TestWeights
 
 		System.out.println( "Using Bounding box: " + boundingBox );
 
-		final double downsampling = 2;
+		final double[] downsampling = {2, 2, 2};
 		final Interval bb;
 
-		if ( !Double.isNaN( downsampling ) )
-			bb = TransformVirtual.scaleBoundingBox( boundingBox, 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+		if ( !Double.isNaN( downsampling[0] ) )
+			bb = TransformVirtual.scaleBoundingBox( boundingBox, factor  );
 		else
 			bb = boundingBox;
 
@@ -91,10 +92,10 @@ public class TestWeights
 			vr.updateModel();
 			AffineTransform3D model = vr.getModel();
 	
-			if ( !Double.isNaN( downsampling ) )
+			if ( !Double.isNaN( downsampling[0] ) )
 			{
 				model = model.copy();
-				TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+				TransformVirtual.scaleTransform( model, factor );
 			}
 	
 			// this modifies the model so it maps from a smaller image to the global coordinate space,

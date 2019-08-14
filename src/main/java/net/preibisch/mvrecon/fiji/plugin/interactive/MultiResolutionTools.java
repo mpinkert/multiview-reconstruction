@@ -26,6 +26,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileFloatType;
 import net.imglib2.util.Pair;
+import net.imglib2.util.Util;
 import net.imglib2.util.ValuePair;
 import net.preibisch.mvrecon.fiji.plugin.fusion.FusionGUI;
 import net.preibisch.mvrecon.fiji.spimdata.SpimData2;
@@ -132,17 +133,17 @@ public class MultiResolutionTools
 		// find unique interest points in the pairs of images
 		final ArrayList< HashSet< CorrespondingIP > > uniqueIPs = NonRigidTools.findUniqueInterestPoints( annotatedIps );
 
-		for ( int downsampling = minDS; downsampling <= maxDS; downsampling *= dsInc )
+		for ( double downsampling = minDS; downsampling <= maxDS; downsampling *= dsInc)
 		{
 			IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Assembling Non-Rigid Multiresolution pyramid for downsampling=" + downsampling );
 
-			final Pair< Interval, AffineTransform3D > scaledBB = FusionTools.createDownsampledBoundingBox( boundingBox, downsampling );
+			final Pair< Interval, AffineTransform3D > scaledBB = FusionTools.createDownsampledBoundingBox( boundingBox, Util.getArrayFromValue(downsampling, 3) );
 
 			final Interval bbDS = scaledBB.getA();
 			final AffineTransform3D bbTransform = scaledBB.getB();
 
 			// create final registrations for all views and a list of corresponding interest points
-			final HashMap< ViewId, AffineTransform3D > downsampledRegistrations = NonRigidTools.createDownsampledRegistrations( viewsToUse, viewRegistrations, downsampling );
+			final HashMap< ViewId, AffineTransform3D > downsampledRegistrations = NonRigidTools.createDownsampledRegistrations( viewsToUse, viewRegistrations, Util.getArrayFromValue(downsampling, 3) );
 
 			// transform unique interest points
 			final ArrayList< HashSet< CorrespondingIP > > transformedUniqueIPs = NonRigidTools.transformUniqueIPs( uniqueIPs, downsampledRegistrations );
@@ -216,7 +217,7 @@ public class MultiResolutionTools
 	{
 		final ArrayList< Pair< RandomAccessibleInterval< FloatType >, AffineTransform3D > > multiRes = new ArrayList<>();
 
-		for ( int downsampling = minDS; downsampling <= maxDS; downsampling *= dsInc )
+		for ( double downsampling = minDS; downsampling <= maxDS; downsampling *= dsInc )
 		{
 			IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Assembling Affine Multiresolution pyramid for downsampling=" + downsampling );
 
@@ -229,7 +230,7 @@ public class MultiResolutionTools
 					useContentBased,
 					interpolation,
 					boundingBox,
-					downsampling,
+					Util.getArrayFromValue(downsampling, 3),
 					intensityAdjustments ) );
 		}
 

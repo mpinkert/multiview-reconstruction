@@ -145,10 +145,13 @@ public class TestQuality
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": FRC done." );
 
 		// downsampling
-		double downsampling = 4; //16; //Double.NaN;
+		double[] downsampling = {4, 4, 4}; //16; //Double.NaN;
 
-		if ( isBrain )
-			downsampling = 16;
+		if ( isBrain ) {
+			downsampling[0] = 16;
+			downsampling[1] = 16;
+			downsampling[2] = 16;
+		}
 
 		//
 		// display virtually fused

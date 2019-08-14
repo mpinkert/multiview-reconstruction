@@ -50,14 +50,15 @@ public class FRCTools
 
 	public static RandomAccessibleInterval< FloatType > fuseRAIs(
 			final Collection< Pair< RandomAccessibleInterval< FloatType >, AffineTransform3D > > data,
-			final double downsampling,
+			final double[] downsampling,
 			final Interval boundingBox,
 			final int interpolation )
 	{
 		final Interval bb;
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
 
-		if ( !Double.isNaN( downsampling ) )
-			bb = TransformVirtual.scaleBoundingBox( boundingBox, 1.0 / downsampling );
+		if ( !Double.isNaN( downsampling[0] ) )
+			bb = TransformVirtual.scaleBoundingBox( boundingBox, factor );
 		else
 			bb = boundingBox;
 
@@ -71,10 +72,10 @@ public class FRCTools
 		{
 			AffineTransform3D model = d.getB();
 
-			if ( !Double.isNaN( downsampling ) )
+			if ( !Double.isNaN( downsampling[0] ) )
 			{
 				model = model.copy();
-				TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+				TransformVirtual.scaleTransform( model, factor );
 			}
 
 			images.add( TransformView.transformView( d.getA(), model, bb, 0, interpolation ) );

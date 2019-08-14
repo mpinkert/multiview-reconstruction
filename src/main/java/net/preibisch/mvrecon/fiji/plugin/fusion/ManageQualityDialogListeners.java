@@ -40,7 +40,7 @@ import ij.gui.GenericDialog;
 public class ManageQualityDialogListeners
 {
 	final GenericDialog gd;
-	final TextField downsampleField;
+	final TextField[] downsampleField;
 	final Choice boundingBoxChoice, splitChoice;
 	final Checkbox anisoCheckbox;
 	final Label label1;
@@ -52,7 +52,7 @@ public class ManageQualityDialogListeners
 	public ManageQualityDialogListeners(
 			final GenericDialog gd,
 			final Choice boundingBoxChoice,
-			final TextField downsampleField,
+			final TextField[] downsampleField,
 			final Checkbox anisoCheckbox,
 			final Choice splitChoice,
 			final Label label1,
@@ -71,7 +71,13 @@ public class ManageQualityDialogListeners
 		this.boundingBoxChoice.addItemListener( new ItemListener() { @Override
 			public void itemStateChanged(ItemEvent e) { update(); } });
 
-		this.downsampleField.addTextListener( new TextListener() { @Override
+		this.downsampleField[0].addTextListener( new TextListener() { @Override
+			public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[1].addTextListener( new TextListener() { @Override
+			public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[2].addTextListener( new TextListener() { @Override
 			public void textValueChanged(TextEvent e) { update(); } });
 
 		this.splitChoice.addItemListener( new ItemListener() { @Override
@@ -88,7 +94,11 @@ public class ManageQualityDialogListeners
 	public void update()
 	{
 		quality.boundingBox = boundingBoxChoice.getSelectedIndex();
-		quality.downsampling = Integer.parseInt( downsampleField.getText() );
+		quality.downsampling[0] = Integer.parseInt( downsampleField[0].getText() );
+		quality.downsampling[1] = Integer.parseInt( downsampleField[1].getText() );
+		quality.downsampling[2] = Integer.parseInt( downsampleField[2].getText() );
+
+
 		quality.splittingType = splitChoice.getSelectedIndex();
 		if ( anisoCheckbox != null )
 		{
@@ -99,12 +109,14 @@ public class ManageQualityDialogListeners
 			else {
 				this.anisoF[0] = 1.0;
 				this.anisoF[1] = 1.0;
+				this.anisoF[2] = 1.0;
 			}
 		}
 		else
 		{
 			this.anisoF[0] = 1.0;
 			this.anisoF[1] = 1.0;
+			this.anisoF[2] = 1.0;
 			quality.preserveAnisotropy = false;
 		}
 
@@ -122,16 +134,18 @@ public class ManageQualityDialogListeners
 
 		if ( quality.preserveAnisotropy )
 		{
-			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[0] ) );
-			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[0] ) );
-			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[1] ) );
-			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[1] ) );
+			min[ 0 ] = (int)Math.round( Math.floor( min[ 0 ] / anisoF[0] ) );
+			max[ 0 ] = (int)Math.round( Math.ceil( max[ 0 ] / anisoF[0] ) );
+			min[ 1 ] = (int)Math.round( Math.floor( min[ 1 ] / anisoF[1] ) );
+			max[ 1 ] = (int)Math.round( Math.ceil( max[ 1 ] / anisoF[1] ) );
+			min[ 2 ] = (int)Math.round( Math.floor( min[ 2 ] / anisoF[2] ) );
+			max[ 2 ] = (int)Math.round( Math.ceil( max[ 2 ] / anisoF[2] ) );
 		}
 
 		label2.setText( "Dimensions: " + 
-				Math.round( (max[ 0 ] - min[ 0 ] + 1)/quality.downsampling ) + " x " + 
-				Math.round( (max[ 1 ] - min[ 1 ] + 1)/quality.downsampling ) + " x " + 
-				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(quality.downsampling ) ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
+				Math.round( (max[ 0 ] - min[ 0 ] + 1)/quality.downsampling[0] ) + " x " +
+				Math.round( (max[ 1 ] - min[ 1 ] + 1)/quality.downsampling[1] ) + " x " +
+				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(quality.downsampling[2] ) ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
 	}
 
 	public long totalRAM( long fusedSizeMB, final int bytePerPixel )

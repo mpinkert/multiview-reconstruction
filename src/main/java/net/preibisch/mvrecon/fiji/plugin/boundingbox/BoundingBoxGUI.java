@@ -312,7 +312,7 @@ public abstract class BoundingBoxGUI extends BoundingBox
 			catch (Exception e ) {}
 
 			final int bytePerPixel = 4;
-			final int downsampling = 1;
+			final double[] downsampling = {1, 1, 1};
 			final long numPixels = FusionTools.numPixels( min, max, downsampling );
 			final long megabytes = (numPixels * bytePerPixel) / (1024*1024);
 			
@@ -320,9 +320,9 @@ public abstract class BoundingBoxGUI extends BoundingBox
 			label1.setForeground( GUIHelper.good );
 
 			label2.setText( "Dimensions: " + 
-					(max[ 0 ] - min[ 0 ] + 1)/downsampling + " x " + 
-					(max[ 1 ] - min[ 1 ] + 1)/downsampling + " x " + 
-					(max[ 2 ] - min[ 2 ] + 1)/downsampling + " pixels @ 32 bit and full resolution."  );
+					(max[ 0 ] - min[ 0 ] + 1)/downsampling[0] + " x " +
+					(max[ 1 ] - min[ 1 ] + 1)/downsampling[1] + " x " +
+					(max[ 2 ] - min[ 2 ] + 1)/downsampling[2] + " pixels @ 32 bit and full resolution."  );
 		}
 	}
 

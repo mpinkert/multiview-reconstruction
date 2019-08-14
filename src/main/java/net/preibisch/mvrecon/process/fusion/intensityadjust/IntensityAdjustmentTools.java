@@ -56,12 +56,13 @@ public class IntensityAdjustmentTools
 			final List< ? extends ViewId > viewIds,
 			final M intensityModel,
 			Interval bb,
-			double downsampling,
+			double[] downsampling,
 			final int maxMatches,
 			final Map< ? extends ViewId, AffineModel1D > existingAdjustments )
 	{
-		if ( !Double.isNaN( downsampling ) )
-			bb = TransformVirtual.scaleBoundingBox( bb, 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+		if ( !Double.isNaN( downsampling[0] ) )
+			bb = TransformVirtual.scaleBoundingBox( bb, factor );
 
 		final long[] dim = new long[ bb.numDimensions() ];
 		bb.dimensions( dim );
@@ -75,10 +76,10 @@ public class IntensityAdjustmentTools
 			vr.updateModel();
 			AffineTransform3D model = vr.getModel();
 
-			if ( !Double.isNaN( downsampling ) )
+			if ( !Double.isNaN( downsampling[0] ) )
 			{
 				model = model.copy();
-				TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+				TransformVirtual.scaleTransform( model, factor );
 			}
 
 			// this modifies the model so it maps from a smaller image to the global coordinate space,

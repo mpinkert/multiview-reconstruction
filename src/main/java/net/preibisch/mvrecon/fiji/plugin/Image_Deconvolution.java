@@ -134,7 +134,7 @@ public class Image_Deconvolution implements PlugIn
 				IOFunctions.println( "(" + new Date(System.currentTimeMillis()) + "): " + Group.gvids( Group.getViewsSorted( virtualView.getViews() ) ) );
 
 			final Interval bb = decon.getBoundingBox();
-			final double downsampling = decon.getDownsampling();
+			final double[] downsampling = decon.getDownsampling();
 
 			final ProcessInputImages< ViewDescription > fusion = new ProcessInputImages<>(
 					spimData,
@@ -147,7 +147,7 @@ public class Image_Deconvolution implements PlugIn
 					FusionTools.defaultBlendingBorder,
 					true,
 					decon.getBlendingRange(),
-					decon.getBlendingBorder() / ( Double.isNaN( downsampling ) ? 1.0f : (float)downsampling ),
+					decon.getBlendingBorder() / ( Double.isNaN( downsampling[0] ) ? 1.0f : (float)downsampling[0] ),
 					decon.adjustIntensities() ? spimData.getIntensityAdjustments().getIntensityAdjustments() : null );
 
 			IOFunctions.println( "(" + new Date(System.currentTimeMillis()) + "): Fusion of 'virtual views' " );

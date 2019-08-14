@@ -71,7 +71,7 @@ public class TestFusion
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Removed " +  removed.size() + " views because they are not present." );
 
 		// downsampling
-		double downsampling = Double.NaN;
+		double[] downsampling = {Double.NaN, Double.NaN, Double.NaN};
 
 		//
 		// display virtually fused

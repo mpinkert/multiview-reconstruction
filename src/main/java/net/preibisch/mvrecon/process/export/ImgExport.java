@@ -54,7 +54,7 @@ public interface ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup );
@@ -76,7 +76,7 @@ public interface ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,

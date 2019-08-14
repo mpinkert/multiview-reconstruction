@@ -40,7 +40,7 @@ import ij.gui.GenericDialog;
 public class ManageFusionDialogListeners
 {
 	final GenericDialog gd;
-	final TextField downsampleField;
+	final TextField[] downsampleField;
 	final Choice boundingBoxChoice, pixelTypeChoice, cachingChoice, nonRigidChoice, splitChoice;
 	final Checkbox contentbasedCheckbox, anisoCheckbox;
 	final Label label1;
@@ -52,7 +52,7 @@ public class ManageFusionDialogListeners
 	public ManageFusionDialogListeners(
 			final GenericDialog gd,
 			final Choice boundingBoxChoice,
-			final TextField downsampleField,
+			final TextField[] downsampleField,
 			final Choice pixelTypeChoice,
 			final Choice cachingChoice,
 			final Choice nonRigidChoice,
@@ -79,8 +79,14 @@ public class ManageFusionDialogListeners
 		this.boundingBoxChoice.addItemListener( new ItemListener() { @Override
 			public void itemStateChanged(ItemEvent e) { update(); } });
 
-		this.downsampleField.addTextListener( new TextListener() { @Override
+		this.downsampleField[0].addTextListener( new TextListener() { @Override
 			public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[1].addTextListener( new TextListener() { @Override
+		public void textValueChanged(TextEvent e) { update(); } });
+
+		this.downsampleField[2].addTextListener( new TextListener() { @Override
+		public void textValueChanged(TextEvent e) { update(); } });
 
 		this.pixelTypeChoice.addItemListener( new ItemListener() { @Override
 			public void itemStateChanged(ItemEvent e) { update(); } });
@@ -109,7 +115,10 @@ public class ManageFusionDialogListeners
 	public void update()
 	{
 		fusion.boundingBox = boundingBoxChoice.getSelectedIndex();
-		fusion.downsampling = Integer.parseInt( downsampleField.getText() );
+		fusion.downsampling[0] = Integer.parseInt( downsampleField[0].getText());
+		fusion.downsampling[1] = Integer.parseInt( downsampleField[1].getText());
+		fusion.downsampling[2] = Integer.parseInt( downsampleField[2].getText());
+
 		fusion.pixelType = pixelTypeChoice.getSelectedIndex();
 		fusion.cacheType = cachingChoice.getSelectedIndex();
 		fusion.useContentBased = contentbasedCheckbox.getState();
@@ -133,6 +142,7 @@ public class ManageFusionDialogListeners
 			fusion.preserveAnisotropy = false;
 		}
 
+		// todo: fix numpixels for different downsampling factors
 		final BoundingBox bb = fusion.allBoxes.get( fusion.boundingBox );
 		final long numPixels = Math.round( FusionTools.numPixels( bb, fusion.downsampling ) / anisoF[1] );
 
@@ -159,9 +169,9 @@ public class ManageFusionDialogListeners
 		}
 
 		label2.setText( "Dimensions: " + 
-				Math.round( (max[ 0 ] - min[ 0 ] + 1)/fusion.downsampling ) + " x " + 
-				Math.round( (max[ 1 ] - min[ 1 ] + 1)/fusion.downsampling ) + " x " + 
-				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsampling ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
+				Math.round( (max[ 0 ] - min[ 0 ] + 1)/fusion.downsampling[0] ) + " x " +
+				Math.round( (max[ 1 ] - min[ 1 ] + 1)/fusion.downsampling[1] ) + " x " +
+				Math.round( (max[ 2 ] - min[ 2 ] + 1)/(fusion.downsampling[2] ) ) + " pixels @ " + FusionGUI.pixelTypes[ fusion.pixelType ] );
 	}
 
 	public long totalRAM( long fusedSizeMB, final int bytePerPixel )
@@ -172,7 +182,8 @@ public class ManageFusionDialogListeners
 		long maxNumPixelsInput = FusionGUI.maxNumInputPixelsPerInputGroup( fusion.getSpimData(), fusion.getViews(), fusion.getSplittingType() );
 
 		// assume he have to load 50% higher resolved data
-		double inputDownSampling = fusion.isMultiResolution() ? fusion.downsampling / 1.5 : 1.0;
+		// todo: fix this for the multiple downsampling factors
+		double inputDownSampling = fusion.isMultiResolution() ? fusion.downsampling[0] / 1.5 : 1.0;
 
 		final int inputBytePerPixel = FusionGUI.inputBytePerPixel( fusion.views.get( 0 ), fusion.spimData );
 

@@ -67,15 +67,16 @@ public class Save3dTIFF implements ImgExport, Calibrateable
 	
 	public < T extends RealType< T > & NativeType< T > > void exportImage( final RandomAccessibleInterval< T > img, final String title )
 	{
-		double[] anisoF = {Double.NaN, Double.NaN};
-		exportImage( img, null, Double.NaN, anisoF, title, null );
+		double[] anisoF = {Double.NaN, Double.NaN, Double.NaN};
+		double[] downsample = {Double.NaN, Double.NaN, Double.NaN};
+		exportImage( img, null, downsample, anisoF, title, null );
 	}
 
 	@Override
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			final RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
@@ -107,7 +108,7 @@ public class Save3dTIFF implements ImgExport, Calibrateable
 	public <T extends RealType<T> & NativeType<T>> boolean exportImage(
 			final RandomAccessibleInterval<T> img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,

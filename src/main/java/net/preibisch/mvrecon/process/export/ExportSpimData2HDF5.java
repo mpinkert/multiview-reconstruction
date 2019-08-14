@@ -220,7 +220,7 @@ public class ExportSpimData2HDF5 implements ImgExport
 	public < T extends RealType< T > & NativeType< T >> boolean exportImage(
 			RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup )
@@ -274,7 +274,7 @@ public class ExportSpimData2HDF5 implements ImgExport
 	public < T extends RealType< T > & NativeType< T > > boolean exportImage(
 			RandomAccessibleInterval< T > img,
 			final Interval bb,
-			final double downsampling,
+			final double[] downsampling,
 			final double[] anisoF,
 			final String title,
 			final Group< ? extends ViewId > fusionGroup,
@@ -300,7 +300,9 @@ public class ExportSpimData2HDF5 implements ImgExport
 		// update the registrations
 		final ViewRegistration vr = spimData.getViewRegistrations().getViewRegistration( newViewId );
 
-		final double scale = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+		final double scaleX = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
+		final double scaleY = Double.isNaN( downsampling[1] ) ? 1.0 : downsampling[1];
+		final double scaleZ = Double.isNaN( downsampling[2] ) ? 1.0 : downsampling[2];
 
 		final double aix = Double.isNaN( anisoF[0] ) ? 1.0 : anisoF[0];
 		final double aiy = Double.isNaN( anisoF[1] ) ? 1.0 : anisoF[1];
@@ -308,9 +310,9 @@ public class ExportSpimData2HDF5 implements ImgExport
 
 
 		final AffineTransform3D m = new AffineTransform3D();
-		m.set( scale * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
-			   0.0f, scale * aiy, 0.0f, bb.min( 1 ) * aiy,
-			   0.0f, 0.0f, scale * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
+		m.set( scaleX * aix, 0.0f, 0.0f, bb.min( 0 ) * aix,
+			   0.0f, scaleY * aiy, 0.0f, bb.min( 1 ) * aiy,
+			   0.0f, 0.0f, scaleZ * aiz, bb.min( 2 ) * aiz ); // TODO: bb * ai is right?
 		final ViewTransform vt = new ViewTransformAffine( "fusion bounding box", m );
 
 		vr.getTransformList().clear();

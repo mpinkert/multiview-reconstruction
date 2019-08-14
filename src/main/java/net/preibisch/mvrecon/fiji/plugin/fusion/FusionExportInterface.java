@@ -57,7 +57,7 @@ public interface FusionExportInterface
 	/**
 	 * @return the downsampling used for the fusion, or Double.NaN if no downsampling
 	 */
-	double getDownsampling();
+	double[] getDownsampling();
 
 	/**
 	 * @return the average anisotropy factor in z of all views used to "flatten" the fused image, or Double.NaN if no change

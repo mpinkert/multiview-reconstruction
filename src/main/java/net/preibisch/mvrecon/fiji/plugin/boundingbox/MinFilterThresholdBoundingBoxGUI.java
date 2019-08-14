@@ -147,23 +147,24 @@ public class MinFilterThresholdBoundingBoxGUI extends BoundingBoxGUI
 			final Label label,
 			final long[] dim )
 	{
-		final TextField downsample = (TextField)tf.get( 2 );
+		final TextField[] downsample = {(TextField)tf.get( 2 ), (TextField)tf.get( 3 ), (TextField)tf.get( 4 )};
 
-		downsample.addTextListener(
+		downsample[0].addTextListener(
 			new TextListener()
 			{
 				@Override
 				public void textValueChanged(TextEvent arg0)
 				{
-					int downsampling = Integer.parseInt( downsample.getText() );
+					double[] downsampling = {Integer.parseInt( downsample[0].getText()),
+							Integer.parseInt( downsample[1].getText()), Integer.parseInt( downsample[2].getText())};
 					
 					final long numPixels = FusionTools.numPixels( dim, downsampling );
 					final long megabytes = (numPixels * 4) / (1024*1024);
 					
 					label.setText( "Image size for segmentation: " + 
-							(dim[ 0 ])/downsampling + " x " + 
-							(dim[ 1 ])/downsampling + " x " + 
-							(dim[ 2 ])/downsampling + " pixels, " + megabytes + " MB" );
+							(dim[ 0 ])/downsampling[0] + " x " +
+							(dim[ 1 ])/downsampling[1] + " x " +
+							(dim[ 2 ])/downsampling[2] + " pixels, " + megabytes + " MB" );
 					label.setForeground( GUIHelper.good );
 				}
 			} );

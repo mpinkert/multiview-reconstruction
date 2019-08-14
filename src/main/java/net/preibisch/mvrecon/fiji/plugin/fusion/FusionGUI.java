@@ -9,12 +9,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -70,7 +70,7 @@ public class FusionGUI implements FusionExportInterface
 	public static int[] cellDim = new int[]{ 10, 10, 10 };
 	public static int maxCacheSize = 1000000;
 
-	public static double defaultDownsampling = 1.0;
+	public static double[] defaultDownsampling = {1.0, 1.0, 1.0};
 	public static int defaultBB = 0;
 
 	public static String[] interpolationTypes = new String[]{ "Nearest Neighbor", "Linear Interpolation" };
@@ -101,7 +101,7 @@ public class FusionGUI implements FusionExportInterface
 	protected int pixelType = defaultPixelType;
 	protected int cacheType = defaultCache;
 	protected int splittingType = defaultSplittingType;
-	protected double downsampling = defaultDownsampling;
+	protected double[] downsampling = defaultDownsampling;
 	protected boolean useBlending = defaultUseBlending;
 	protected boolean useContentBased = defaultUseContentBased;
 	protected boolean adjustIntensities = defaultAdjustIntensities;
@@ -160,8 +160,10 @@ public class FusionGUI implements FusionExportInterface
 	@Override
 	public Interval getDownsampledBoundingBox()
 	{
-		if ( !Double.isNaN( downsampling ) )
-			return TransformVirtual.scaleBoundingBox( getBoundingBox(), 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+
+		if ( !Double.isNaN( downsampling[0] ) )
+			return TransformVirtual.scaleBoundingBox( getBoundingBox(), factor );
 		else
 			return getBoundingBox();
 	}
@@ -175,7 +177,9 @@ public class FusionGUI implements FusionExportInterface
 	public NonRigidParametersGUI getNonRigidParameters() { return nrgui; }
 
 	@Override
-	public double getDownsampling(){ return downsampling; }
+	public double[] getDownsampling(){
+		double[] downsampling_here = {downsampling[0], downsampling[1], downsampling[2]};
+		return downsampling_here; }
 
 	public boolean useBlending() { return useBlending; }
 
@@ -198,7 +202,7 @@ public class FusionGUI implements FusionExportInterface
 	{
 		final boolean enableNonRigid = NonRigidParametersGUI.enableNonRigid;
 		final Choice boundingBoxChoice, pixelTypeChoice, cachingChoice, nonrigidChoice, splitChoice;
-		final TextField downsampleField;
+
 		final Checkbox contentbasedCheckbox, anisoCheckbox;
 
 		final String[] choices = FusionGUI.getBoundingBoxChoices( allBoxes );
@@ -206,6 +210,11 @@ public class FusionGUI implements FusionExportInterface
 
 		if ( defaultBB >= choices.length )
 			defaultBB = 0;
+
+
+		boolean anisotropicImage = Math.abs(avgAnisoF[0] - 1.0) > 0.01 || Math.abs(avgAnisoF[1] - 1.0) > 0.01
+				||  Math.abs(avgAnisoF[2] - 1.0) > 0.01 ;
+
 
 		final boolean hasIntensityAdjustments = IntensityAdjustmentTools.containsAdjustments( spimData.getIntensityAdjustments(), views );
 
@@ -219,8 +228,16 @@ public class FusionGUI implements FusionExportInterface
 			gd.addChoice( "Bounding_Box", choicesForMacro, choicesForMacro[ defaultBB ] );
 		boundingBoxChoice = lastChoice(gd);
 
-		gd.addSlider( "Downsampling", 1.0, 16.0, defaultDownsampling );
-		downsampleField = lastTextField(gd);
+		gd.addSlider( "Downsampling in X", 1.0, 16.0, defaultDownsampling[0] );
+		TextField downsampleFieldX = lastTextField(gd);
+
+		gd.addSlider("Downsampling in Y", 1.0, 16.0, defaultDownsampling[1]);
+		TextField downsampleFieldY = lastTextField(gd);
+
+		gd.addSlider("Downsampling in Z", 1.0, 16.0, defaultDownsampling[2]);
+		TextField downsampleFieldZ = lastTextField(gd);
+
+		final TextField[] downsampleField = {downsampleFieldX, downsampleFieldY, downsampleFieldZ};
 
 		gd.addChoice( "Pixel_type", pixelTypes, pixelTypes[ defaultPixelType ] );
 		pixelTypeChoice = lastChoice(gd);
@@ -250,7 +267,7 @@ public class FusionGUI implements FusionExportInterface
 		if ( hasIntensityAdjustments )
 			gd.addCheckbox( "Adjust_image_intensities (only use with 32-bit output)", defaultAdjustIntensities );
 
-		if ( avgAnisoF[0] != 1.0 || avgAnisoF[1] != 1.0 || avgAnisoF[2] != 1.0) // for numerical instabilities (computed upon instantiation)
+		if (anisotropicImage) // for numerical instabilities (computed upon instantiation)
 		{
 			gd.addCheckbox( "Preserve_original data anisotropy (resample image "
 					+ TransformationTools.f.format( avgAnisoF[0] ) + " times in x and "
@@ -259,7 +276,8 @@ public class FusionGUI implements FusionExportInterface
 			anisoCheckbox = lastCheckbox(gd);
 			gd.addMessage(
 					"WARNING: Enabling this means to 'shrink' the dataset in z the same way the input\n" +
-					"images were scaled. Only use this if this is not a multiview dataset.", GUIHelper.smallStatusFont, GUIHelper.warning );
+							"images were scaled. Only use this if this is not a multiview dataset.\n"  +
+							"This will also enable different downsampling in x, y, and z.", GUIHelper.smallStatusFont, GUIHelper.warning );
 		}
 		else
 		{
@@ -291,7 +309,7 @@ public class FusionGUI implements FusionExportInterface
 					label1,
 					label2,
 					this );
-	
+
 			m.update();
 		}
 
@@ -315,10 +333,15 @@ public class FusionGUI implements FusionExportInterface
 		}
 
 		boundingBox = defaultBB = gd.getNextChoiceIndex();
-		downsampling = defaultDownsampling = gd.getNextNumber();
+		downsampling[0] = defaultDownsampling[0] = gd.getNextNumber();
+		downsampling[1] = defaultDownsampling[1] = gd.getNextNumber();
+		downsampling[2] = defaultDownsampling[2] = gd.getNextNumber();
 
-		if ( downsampling == 1.0 )
-			downsampling = Double.NaN;
+		if ( downsampling[0] == 1.0 && downsampling[1] == 1.0 && downsampling[2] == 1.0 ) {
+			downsampling[0] = Double.NaN;
+			downsampling[1] = Double.NaN;
+			downsampling[2] = Double.NaN;
+		}
 
 		pixelType = defaultPixelType = gd.getNextChoiceIndex();
 		interpolation = defaultInterpolation = gd.getNextChoiceIndex();
@@ -354,12 +377,8 @@ public class FusionGUI implements FusionExportInterface
 			if ( !this.nrgui.advancedParameters() )
 				return false;
 
-
-		// todo: fix bounding box calculation so image outputs correctly
 		// todo: fix memory estimate
 		// todo: fix pixels estimate
-		// todo: fix isotropic fusion
-
 
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Selected Fusion Parameters: " );
 		IOFunctions.println( "Downsampling: " + DownsampleTools.printDownsampling( getDownsampling() ) );
@@ -423,9 +442,9 @@ public class FusionGUI implements FusionExportInterface
 
 		int i = 0;
 		for ( final BoundingBox b : allBoxes )
-			choices[ i++ ] = showDimensions 
-								? b.getTitle() + " (" + b.dimension( 0 ) + "x" + b.dimension( 1 ) + "x" + b.dimension( 2 ) + "px)"
-								: b.getTitle();
+			choices[ i++ ] = showDimensions
+					? b.getTitle() + " (" + b.dimension( 0 ) + "x" + b.dimension( 1 ) + "x" + b.dimension( 2 ) + "px)"
+					: b.getTitle();
 
 		return choices;
 	}
@@ -501,24 +520,24 @@ public class FusionGUI implements FusionExportInterface
 	private	Choice lastChoice(GenericDialog gd) {
 		Choice choice;
 		try{
-			  choice = (Choice)gd.getChoices().lastElement();
-			  return choice;}
+			choice = (Choice)gd.getChoices().lastElement();
+			return choice;}
 		catch (NullPointerException e){return null;}
 	}
 
 	private Checkbox lastCheckbox(GenericDialog gd){
 		Checkbox checkbox;
 		try{
-			  checkbox = (Checkbox)gd.getCheckboxes().lastElement();
-			  return checkbox;}
+			checkbox = (Checkbox)gd.getCheckboxes().lastElement();
+			return checkbox;}
 		catch (NullPointerException e){return null;}
 	}
 
 	private TextField lastTextField(GenericDialog gd){
 		TextField textField;
 		try{
-			  textField = (TextField)gd.getNumericFields().lastElement();
-			  return textField;}
+			textField = (TextField)gd.getNumericFields().lastElement();
+			return textField;}
 		catch (NullPointerException e){return null;}
 	}
 }

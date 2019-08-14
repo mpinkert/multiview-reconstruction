@@ -50,7 +50,7 @@ public class TestNonRigid
 			final BoundingBox boundingBox )
 	{
 		// downsampling
-		double downsampling = Double.NaN;
+		double[] downsampling = {Double.NaN, Double.NaN, Double.NaN};
 
 		//
 		// display virtually fused
@@ -95,8 +95,8 @@ public class TestNonRigid
 		IOFunctions.println( new Date( System.currentTimeMillis() ) + ": Removed " +  removed.size() + " views because they are not present." );
 
 		// downsampling
-		final double downsampling = Double.NaN;
-		final double ds = Double.isNaN( downsampling ) ? 1.0 : downsampling;
+		final double[] downsampling = {Double.NaN, Double.NaN, Double.NaN};
+		final double ds = Double.isNaN( downsampling[0] ) ? 1.0 : downsampling[0];
 		final int cpd = Math.max( 1, (int)Math.round( 10 / ds ) );
 		//
 		// display virtually fused

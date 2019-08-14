@@ -56,14 +56,14 @@ import net.preibisch.mvrecon.process.fusion.intensityadjust.IntensityAdjustmentT
 
 public class Intensity_Adjustment implements PlugIn
 {
-	public static double defaultDownsampling = 10;
+	public static double[] defaultDownsampling = {10, 10, 10};
 	public static int defaultMaxInliers = 10000;
 	public static boolean defaultAffine = true;
 	public static double defaultTranslationRegularization = 0.1;
 	public static double defaultIdentityRegularization = 0.1;
 
 	int boundingBox;
-	double downsampling;
+	double[] downsampling;
 	List< BoundingBox > allBoxes;
 	SpimData2 data;
 	List< ViewId > viewIds;
@@ -122,7 +122,9 @@ public class Intensity_Adjustment implements PlugIn
 		else
 			gd.addChoice( "Bounding_Box", choicesForMacro, choicesForMacro[ FusionGUI.defaultBB ] );
 
-		gd.addSlider( "Downsampling", 1.0, 64.0, defaultDownsampling );
+		gd.addSlider( "Downsampling in X", 1.0, 64.0, defaultDownsampling[0] );
+		gd.addSlider( "Downsampling in Y", 1.0, 64.0, defaultDownsampling[1] );
+		gd.addSlider( "Downsampling in Z", 1.0, 64.0, defaultDownsampling[2] );
 		gd.addNumericField( "Max_inliers", defaultMaxInliers, 0 );
 
 		gd.addMessage( "" );
@@ -140,10 +142,13 @@ public class Intensity_Adjustment implements PlugIn
 		gd.addMessage( "???x???x??? pixels", GUIHelper.smallStatusFont, GUIHelper.good );
 		if ( !PluginHelper.isHeadless() )  label2 = (Label)gd.getMessage();
 
+		TextField[] downsample_fields = {(TextField)gd.getNumericFields().get( 0 ),
+				(TextField)gd.getNumericFields().get( 1 ), (TextField)gd.getNumericFields().get( 2 )};
+
 		if ( !PluginHelper.isHeadless() )
 		{
 			final ManageListeners m = new ManageListeners(
-					gd, (Choice)gd.getChoices().get( 0 ), (TextField)gd.getNumericFields().get( 0 ), label1, label2 );
+					gd, (Choice)gd.getChoices().get( 0 ), downsample_fields, label1, label2 );
 	
 			m.update();
 		}
@@ -168,15 +173,23 @@ public class Intensity_Adjustment implements PlugIn
 		}
 
 		boundingBox = FusionGUI.defaultBB = gd.getNextChoiceIndex();
-		downsampling = defaultDownsampling = gd.getNextNumber();
+		downsampling[0] = defaultDownsampling[0] = gd.getNextNumber();
+		downsampling[1] = defaultDownsampling[1] = gd.getNextNumber();
+		downsampling[2] = defaultDownsampling[2] = gd.getNextNumber();
 		final int maxInliers = defaultMaxInliers = (int)Math.round( gd.getNextNumber() );
 
 		final boolean affine = defaultAffine = gd.getNextBoolean();
 		final double regTrans = defaultTranslationRegularization = gd.getNextNumber();
 		final double regIdentity = defaultIdentityRegularization = gd.getNextNumber();
 
-		if ( downsampling == 1.0 )
-			downsampling = Double.NaN;
+		boolean no_downsampling = downsampling[0] == 1.0 && downsampling[1] == 1.0 && downsampling[2] == 1.0;
+
+		if ( no_downsampling ) {
+			downsampling[0] = Double.NaN;
+			downsampling[1] = Double.NaN;
+			downsampling[2] = Double.NaN;
+
+		}
 
 		final HashMap< ViewId, AffineModel1D > intensityMapping;
 
@@ -210,7 +223,7 @@ public class Intensity_Adjustment implements PlugIn
 	class ManageListeners
 	{
 		final GenericDialog gd;
-		final TextField downsampleField;
+		final TextField[] downsampleField;
 		final Choice boundingBoxChoice;
 		final Label label1;
 		final Label label2;
@@ -218,7 +231,7 @@ public class Intensity_Adjustment implements PlugIn
 		public ManageListeners(
 				final GenericDialog gd,
 				final Choice boundingBoxChoice,
-				final TextField downsampleField,
+				final TextField[] downsampleField,
 				final Label label1,
 				final Label label2 )
 		{
@@ -231,14 +244,22 @@ public class Intensity_Adjustment implements PlugIn
 			this.boundingBoxChoice.addItemListener( new ItemListener() { @Override
 				public void itemStateChanged(ItemEvent e) { update(); } });
 
-			this.downsampleField.addTextListener( new TextListener() { @Override
+			this.downsampleField[0].addTextListener( new TextListener() { @Override
+				public void textValueChanged(TextEvent e) { update(); } });
+
+			this.downsampleField[1].addTextListener( new TextListener() { @Override
+				public void textValueChanged(TextEvent e) { update(); } });
+
+			this.downsampleField[2].addTextListener( new TextListener() { @Override
 				public void textValueChanged(TextEvent e) { update(); } });
 		}
 
 		public void update()
 		{
 			boundingBox = boundingBoxChoice.getSelectedIndex();
-			downsampling = Integer.parseInt( downsampleField.getText() );
+			downsampling[0] = Integer.parseInt( downsampleField[0].getText() );
+			downsampling[1] = Integer.parseInt( downsampleField[1].getText() );
+			downsampling[2] = Integer.parseInt( downsampleField[2].getText() );
 
 			final BoundingBox bb = allBoxes.get( boundingBox );
 			final long numPixels = Math.round( FusionTools.numPixels( bb, downsampling ) );
@@ -253,9 +274,9 @@ public class Intensity_Adjustment implements PlugIn
 			final int[] max = bb.getMax().clone();
 
 			label2.setText( "Dimensions: " + 
-					Math.round( (max[ 0 ] - min[ 0 ] + 1)/downsampling ) + " x " + 
-					Math.round( (max[ 1 ] - min[ 1 ] + 1)/downsampling ) + " x " + 
-					Math.round( (max[ 2 ] - min[ 2 ] + 1)/downsampling ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
+					Math.round( (max[ 0 ] - min[ 0 ] + 1)/downsampling[0] ) + " x " +
+					Math.round( (max[ 1 ] - min[ 1 ] + 1)/downsampling[1] ) + " x " +
+					Math.round( (max[ 2 ] - min[ 2 ] + 1)/downsampling[2] ) + " pixels @ " + FusionGUI.pixelTypes[ 0 ] );
 		}
 
 		public long totalRAM( long fusedSizeMB, final int bytePerPixel )
@@ -266,7 +287,7 @@ public class Intensity_Adjustment implements PlugIn
 			long maxNumPixelsInput = FusionGUI.maxNumInputPixelsPerInputGroup( data, viewIds, 2 );
 
 			// assume he have to load 50% higher resolved data
-			double inputDownSampling = FusionGUI.isMultiResolution( data ) ? downsampling / 1.5 : 1.0;
+			double inputDownSampling = FusionGUI.isMultiResolution( data ) ? downsampling[0] / 1.5 : 1.0;
 
 			final int inputBytePerPixel = FusionGUI.inputBytePerPixel( viewIds.get( 0 ), data );
 

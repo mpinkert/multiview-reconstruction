@@ -146,7 +146,7 @@ public class DeconvolutionGUI implements FusionExportInterface
 	public static int defaultBB = 0;
 	public static int defaultInputImgCacheType = 1;
 	public static int defaultWeightCacheType = 1;
-	public static double defaultDownsampling = 1.0;
+	public static double defaultDownsampling[] = {1.0, 1.0, 1.0};
 	public static boolean defaultAdjustIntensities = false;
 	public static boolean defaultMul = false;
 	public static int defaultPSFType = 1;
@@ -177,7 +177,7 @@ public class DeconvolutionGUI implements FusionExportInterface
 
 
 	protected int boundingBox = defaultBB;
-	protected double downsampling = defaultDownsampling;
+	protected double downsampling[] = defaultDownsampling;
 	protected boolean adjustIntensities = defaultAdjustIntensities;
 	protected boolean mul = defaultMul;
 	protected int cacheTypeInputImg = defaultInputImgCacheType;
@@ -266,8 +266,9 @@ public class DeconvolutionGUI implements FusionExportInterface
 	@Override
 	public Interval getDownsampledBoundingBox()
 	{
-		if ( !Double.isNaN( downsampling ) )
-			return TransformVirtual.scaleBoundingBox( getBoundingBox(), 1.0 / downsampling );
+		double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
+		if ( !Double.isNaN( downsampling[0] ) )
+			return TransformVirtual.scaleBoundingBox( getBoundingBox(), factor );
 		else
 			return getBoundingBox();
 	}
@@ -276,7 +277,9 @@ public class DeconvolutionGUI implements FusionExportInterface
 	public int getPixelType() { return 0; }
 
 	@Override
-	public double getDownsampling(){ return downsampling; }
+	public double[] getDownsampling(){
+		double[] downsampling_here = {downsampling[0], downsampling[1], downsampling[2]};
+		return downsampling_here; }
 
 	@Override
 	public double[] getAnisotropyFactor() {
@@ -345,7 +348,7 @@ public class DeconvolutionGUI implements FusionExportInterface
 			defaultBB = 0;
 
 		Choice boundingBoxChoice = null, inputCacheChoice = null, nonrigidChoice = null, weightCacheChoice = null, blockChoice = null, computeOnChoice = null, splitChoice = null;
-		TextField downsampleField = null;
+		TextField[] downsampleField = {null, null, null};
 		Label label1 = null, label2 = null;
 
 		final GenericDialog gd = new GenericDialog( "Image Fusion" );
@@ -354,8 +357,22 @@ public class DeconvolutionGUI implements FusionExportInterface
 		if ( !PluginHelper.isHeadless() ) boundingBoxChoice = (Choice)gd.getChoices().lastElement();
 		gd.addMessage( "" );
 
-		gd.addSlider( "Downsampling", 1.0, 16.0, defaultDownsampling );
-		if ( !PluginHelper.isHeadless() ) downsampleField = (TextField)gd.getNumericFields().lastElement();
+		TextField downsampleFieldX, downsampleFieldY, downsampleFieldZ;
+
+		gd.addSlider( "Downsampling in X", 1.0, 16.0, defaultDownsampling[0] );
+
+		gd.addSlider( "Downsampling in Y", 1.0, 16.0, defaultDownsampling[1] );
+
+		gd.addSlider( "Downsampling in Z", 1.0, 16.0, defaultDownsampling[2] );
+		if ( !PluginHelper.isHeadless() ) {
+			downsampleFieldX = (TextField) gd.getNumericFields().lastElement();
+			downsampleFieldY = (TextField) gd.getNumericFields().lastElement();
+			downsampleFieldZ = (TextField) gd.getNumericFields().lastElement();
+			downsampleField[0] = downsampleFieldX;
+			downsampleField[1] = downsampleFieldY;
+			downsampleField[2] = downsampleFieldZ;
+		}
+
 		gd.addChoice( "Input image(s)", FusionTools.imgDataTypeChoice, FusionTools.imgDataTypeChoice[ defaultInputImgCacheType ] );
 		if ( !PluginHelper.isHeadless() ) inputCacheChoice = (Choice)gd.getChoices().lastElement();
 		gd.addChoice( "Weight image(s)", FusionTools.imgDataTypeChoice, FusionTools.imgDataTypeChoice[ defaultWeightCacheType ] );
@@ -430,11 +447,15 @@ public class DeconvolutionGUI implements FusionExportInterface
 			return false;
 
 		boundingBox = defaultBB = gd.getNextChoiceIndex();
-		downsampling = defaultDownsampling = gd.getNextNumber();
+		downsampling[0] = defaultDownsampling[0] = gd.getNextNumber();
+		downsampling[1] = defaultDownsampling[1] = gd.getNextNumber();
+		downsampling[2] = defaultDownsampling[2] = gd.getNextNumber();
 
-		if ( downsampling == 1.0 )
-			downsampling = Double.NaN;
-
+		if ( downsampling[0] == 1.0 ) {
+			downsampling[0] = Double.NaN;
+			downsampling[1] = Double.NaN;
+			downsampling[2] = Double.NaN;
+		}
 		cacheTypeInputImg = defaultInputImgCacheType = gd.getNextChoiceIndex();
 		cacheTypeWeights = defaultWeightCacheType = gd.getNextChoiceIndex();
 

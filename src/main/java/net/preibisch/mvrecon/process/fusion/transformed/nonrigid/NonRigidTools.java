@@ -74,7 +74,7 @@ public class NonRigidTools
 			final boolean virtualGrid,
 			final int interpolation,
 			final Interval boundingBox1,
-			final double downsampling,
+			final double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments,
 			final ExecutorService service )
 	{
@@ -135,7 +135,7 @@ public class NonRigidTools
 			final boolean virtualGrid,
 			final int interpolation,
 			final Interval boundingBox,
-			final double downsampling,
+			final double[] downsampling,
 			final Map< ? extends ViewId, AffineModel1D > intensityAdjustments,
 			final ExecutorService service )
 	{
@@ -423,7 +423,7 @@ public class NonRigidTools
 	public static HashMap< ViewId, AffineTransform3D > createDownsampledRegistrations(
 			final Collection< ? extends ViewId > viewsToUse,
 			final Map< ViewId, AffineTransform3D > viewRegistrations,
-			final double downsampling )
+			final double[] downsampling )
 	{
 		final HashMap< ViewId, AffineTransform3D > downsampledRegistrations = new HashMap<>();
 
@@ -431,9 +431,11 @@ public class NonRigidTools
 		{
 			// we must copy the model and not modify the existing one
 			final AffineTransform3D model = viewRegistrations.get( viewId ).copy();
+			double[] factor = {1.0/downsampling[0], 1.0/downsampling[1], 1.0/downsampling[2]};
 
-			if ( !Double.isNaN( downsampling ) )
-				TransformVirtual.scaleTransform( model, 1.0 / downsampling );
+			if ( !Double.isNaN( downsampling[0] ) )
+
+				TransformVirtual.scaleTransform( model, factor );
 
 			downsampledRegistrations.put( viewId, model );
 		}
